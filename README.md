@@ -50,6 +50,7 @@ The default MQTT topic is "#". Configurable options are the following:
   - key_file: private key file path
   - cert_file: certificate file path
 - format: Input parser can be chosen, e.g. json, xml
+  - in order to use xml format, you need to install [fluent-plugin-xml-parser](https://github.com/toyokazu/fluent-plugin-xml-parser]).
 
 Input Plugin supports @label directive.
 
@@ -105,6 +106,10 @@ You can also use mqtt_buf type which is implemented as BufferedOutput.
 </match>
 
 ```
+
+
+## Example use case
+
 
 
 ## Contributing

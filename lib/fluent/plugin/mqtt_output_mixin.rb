@@ -68,8 +68,7 @@ module Fluent
       if @time_format.nil?
         Time.at(time).iso8601
       else
-        time_parser = TimeParser.new(@time_format)
-        time_parser.parse(time)
+        Time.at(time).strftime(@time_format)
       end
     end
 
