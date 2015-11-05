@@ -2,18 +2,21 @@ module Fluent
   module MqttOutputMixin
     # config_param defines a parameter. You can refer a parameter via @path instance variable
     # Without :default, a parameter is required.
-    config_param :port, :integer, :default => 1883
-    config_param :bind, :string, :default => '127.0.0.1'
-    config_param :username, :string, :default => nil
-    config_param :password, :string, :default => nil
-    config_param :ssl, :bool, :default => nil
-    config_param :ca_file, :string, :default => nil
-    config_param :key_file, :string, :default => nil
-    config_param :cert_file, :string, :default => nil
-    config_param :time_key, :string, :default => 'timestamp'
-    config_param :time_format, :string, :default => nil
-    config_param :topic_rewrite_pattern, :string, :default => nil
-    config_param :topic_rewrite_replacement, :string, :default => nil
+    
+    def self.included(base)
+      base.config_param :port, :integer, :default => 1883
+      base.config_param :bind, :string, :default => '127.0.0.1'
+      base.config_param :username, :string, :default => nil
+      base.config_param :password, :string, :default => nil
+      base.config_param :ssl, :bool, :default => nil
+      base.config_param :ca_file, :string, :default => nil
+      base.config_param :key_file, :string, :default => nil
+      base.config_param :cert_file, :string, :default => nil
+      base.config_param :time_key, :string, :default => 'timestamp'
+      base.config_param :time_format, :string, :default => nil
+      base.config_param :topic_rewrite_pattern, :string, :default => nil
+      base.config_param :topic_rewrite_replacement, :string, :default => nil
+    end
 
     require 'mqtt'
 
@@ -63,10 +66,10 @@ module Fluent
 
     def format_time(time)
       if @time_format.nil?
-        Time.at(data).iso8601
+        Time.at(time).iso8601
       else
         time_parser = TimeParser.new(@time_format)
-        time_parser.parse(data)
+        time_parser.parse(time)
       end
     end
 
