@@ -1,0 +1,91 @@
+module Fluent
+  module MqttOutputMixin
+    # config_param defines a parameter. You can refer a parameter via @path instance variable
+    # Without :default, a parameter is required.
+    config_param :port, :integer, :default => 1883
+    config_param :bind, :string, :default => '127.0.0.1'
+    config_param :username, :string, :default => nil
+    config_param :password, :string, :default => nil
+    config_param :ssl, :bool, :default => nil
+    config_param :ca_file, :string, :default => nil
+    config_param :key_file, :string, :default => nil
+    config_param :cert_file, :string, :default => nil
+    config_param :time_key, :string, :default => 'timestamp'
+    config_param :time_format, :string, :default => nil
+    config_param :topic_rewrite_pattern, :string, :default => nil
+    config_param :topic_rewrite_replacement, :string, :default => nil
+
+    require 'mqtt'
+
+    # This method is called before starting.
+    # 'conf' is a Hash that includes configuration parameters.
+    # If the configuration is invalid, raise Fluent::ConfigError.
+    def configure(conf)
+      super
+
+      # You can also refer raw parameter via conf[name].
+      @bind ||= conf['bind']
+      @port ||= conf['port']
+      @username ||= conf['username']
+      @password ||= conf['password']
+      @time_key ||= conf['time_key']
+      @time_format ||= conf['time_format']
+      @topic_rewrite_pattern ||= conf['topic_rewrite_pattern']
+      @topic_rewrite_replacement ||= conf['topic_rewrite_replacement']
+    end
+
+    # This method is called when starting.
+    # Open sockets or files here.
+    def start
+      super
+
+      $log.debug "start mqtt #{@bind}"
+      opts = {
+        host: @bind,
+        port: @port,
+        username: @username,
+        password: @password
+      }
+      opts[:ssl] = @ssl if @ssl
+      opts[:ca_file] = @ca if @ca
+      opts[:cert_file] = @crt if @crt
+      opts[:key_file] = @key if @key
+      @connect = MQTT::Client.connect(opts)
+    end
+
+    # This method is called when shutting down.
+    # Shutdown the thread and close sockets or files here.
+    def shutdown
+      super
+
+      @connect.disconnect
+    end
+
+    def format_time(time)
+      if @time_format.nil?
+        Time.at(data).iso8601
+      else
+        time_parser = TimeParser.new(@time_format)
+        time_parser.parse(data)
+      end
+    end
+
+    def rewrite_tag(tag)
+      if @topic_rewrite_pattern.nil?
+        tag.gsub("\.", "/")
+      else
+        tag.gsub("\.", "/").gsub(Regexp.new(@topic_rewrite_pattern), @topic_rewrite_replacement)
+      end
+    end
+
+    def json_parse message
+      begin
+        y = Yajl::Parser.new
+        y.parse(message)
+      rescue
+        $log.error "JSON parse error", :error => $!.to_s, :error_class => $!.class.to_s
+        $log.warn_backtrace $!.backtrace         
+      end
+    end
+  end
+end

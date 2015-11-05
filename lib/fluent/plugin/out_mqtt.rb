@@ -1,5 +1,6 @@
 module Fluent
   class MqttOutput < Output
+    require 'fluent/plugin/mqtt_output_mixin'
     include Fluent::MqttOutputMixin
 
     # First, register the plugin. NAME is the name of this plugin
