@@ -12,7 +12,7 @@ module Fluent
       base.config_param :ca_file, :string, :default => nil
       base.config_param :key_file, :string, :default => nil
       base.config_param :cert_file, :string, :default => nil
-      base.config_param :time_key, :string, :default => 'timestamp'
+      base.config_param :time_key, :string, :default => nil
       base.config_param :time_format, :string, :default => nil
       base.config_param :topic_rewrite_pattern, :string, :default => nil
       base.config_param :topic_rewrite_replacement, :string, :default => nil
@@ -69,6 +69,14 @@ module Fluent
         Time.at(time).iso8601
       else
         Time.at(time).strftime(@time_format)
+      end
+    end
+
+    def timestamp_hash(time)
+      if @time_key.nil?
+        {}
+      else
+        {@time_key => format_time(time)}
       end
     end
 
