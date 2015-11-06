@@ -50,9 +50,9 @@ module Fluent
         password: @password
       }
       opts[:ssl] = @ssl if @ssl
-      opts[:ca_file] = @ca if @ca
-      opts[:cert_file] = @crt if @crt
-      opts[:key_file] = @key if @key
+      opts[:ca_file] = @ca_file if @ca_file
+      opts[:cert_file] = @cert_file if @cert_file
+      opts[:key_file] = @key_file if @key_file
       @connect = MQTT::Client.connect(opts)
     end
 
