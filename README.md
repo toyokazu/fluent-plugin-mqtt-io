@@ -109,8 +109,106 @@ You can also use mqtt_buf type which is implemented as BufferedOutput.
 ```
 
 
-## Example use case
+## Use case examples
 
+### Libelium sensor data collection
+
+There are many kinds of commercial sensor products on the market, e.g. [Libelium](http://www.libelium.com/). Major sensor products support MQTT to upload sensor data. The following example shows how to store uploaded Libelium sensor data into ElasticSearch.
+
+![Libelium sensor data collection](https://github.com/toyokazu/fluent-plugin-mqtt-io/images/libelium_sensor_data_collection.png "Libelium sensor data")
+
+In this example, as described in the figure, fluent-plugin-mqtt-io, fluent-plugin-xml-parser and fluent-plugin-elasticsearch. The following is an example configuration.
+
+```
+<source>
+  type mqtt
+  bind 192.168.1.100
+  port 1883
+  topic 'Libelium/+/+'
+  format xml
+  time_xpath '["cap:alert/cap:info/cap:onset", "text"]'
+  time_key '@timestamp'
+  attr_xpaths '[["cap:alert/cap:info/cap:parameter/cap:valueName", "text"]]'
+  value_xpaths '[["cap:alert/cap:info/cap:parameter/cap:value", "text"]]'
+  @label @MQTT_OUT
+</source>
+
+<label @MQTT_OUT>
+  <match **>
+    type copy
+    <store>
+      type elasticsearch
+      host localhost
+      port 9200
+      index_name libelium
+      type_name smartcity
+      include_tag_key true
+      tag_key sensor_id
+      logstash_format false
+    </store>
+</label>
+
+```
+
+In this example, the following mapping is assumed to be created at ElasticSearch.
+
+```
+
+curl -XPUT 'http://localhost:9200/libelium/_mapping/smartcity' -d '
+  {"smartcity":
+    {"properties":
+      {
+        "sensor_id":{"type": "string"},
+        "DUST":{"type": "float"},
+        "MCP":{"type": "float"},
+        "HUMA":{"type": "float"},
+        "TCA":{"type": "float"},
+        "BAT":{"type": "float"},
+        "@timestamp":{"type":"date","format":"dateOptionalTime"}
+      }
+    }
+  }'
+
+```
+
+### MQTT message conversion
+
+Sometimes, MQTT message conversion must be done in the network because the processing entities does not have the conversion function. In that case, the configuration similar to the above example can be used. The difference resides output configuration. In this example, since the same MQTT broker is used to upload converted data, topic rewriting function is used for separating messages before and after conversion.
+
+![MQTT message conversion](https://github.com/toyokazu/fluent-plugin-mqtt-io/images/mqtt_message_conversion.png "MQTT message conversion")
+
+```
+<source>
+  type mqtt
+  bind 192.168.1.100
+  port 1883
+  topic 'Libelium/+/+'
+  format xml
+  time_xpath '["cap:alert/cap:info/cap:onset", "text"]'
+  time_key '@timestamp'
+  attr_xpaths '[["cap:alert/cap:info/cap:parameter/cap:valueName", "text"]]'
+  value_xpaths '[["cap:alert/cap:info/cap:parameter/cap:value", "text"]]'
+  @label @MQTT_OUT
+</source>
+
+<label @MQTT_OUT>
+  <match **>
+    type mqtt
+    bind 192.168.1.100
+    port 1883
+    topic_rewrite_pattern '^([\w\/]+)$'
+    topic_rewrite_replacement '\1/rewritten'
+  </match>
+</label>
+
+```
+
+
+### Sensor data uploads from tiny computers, e.g. Raspberry Pi, Edison, etc
+
+MQTT output plugin can be used as the following. If you have tiny computers like Raspberry Pi equipped with sensors and their data are outputted as files, you can use fluent-plugin-mqtt-io for uploading those data.
+
+![Sensor data uploads from tiny computers](https://github.com/toyokazu/fluent-plugin-mqtt-io/images/sensor_data_uploads_from_tiny_computers.png "Sensor data uploads from tiny computers")
 
 
 ## Contributing
