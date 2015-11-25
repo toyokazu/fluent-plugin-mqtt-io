@@ -135,7 +135,6 @@ In this example, as described in the figure, fluent-plugin-mqtt-io, fluent-plugi
 
 <label @MQTT_OUT>
   <match **>
-    type copy
     <store>
       type elasticsearch
       host localhost
@@ -146,6 +145,7 @@ In this example, as described in the figure, fluent-plugin-mqtt-io, fluent-plugi
       tag_key sensor_id
       logstash_format false
     </store>
+  </match>
 </label>
 
 ```
