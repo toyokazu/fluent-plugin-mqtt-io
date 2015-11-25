@@ -117,7 +117,7 @@ There are many kinds of commercial sensor products on the market, e.g. [Libelium
 
 ![Libelium sensor data collection](https://github.com/toyokazu/fluent-plugin-mqtt-io/blob/master/images/libelium_sensor_data_collection.png "Libelium sensor data")
 
-In this example, as described in the figure, fluent-plugin-mqtt-io, fluent-plugin-xml-parser and fluent-plugin-elasticsearch. The following is an example configuration.
+As described in the figure, fluent-plugin-mqtt-io, fluent-plugin-xml-parser and fluent-plugin-elasticsearch are used in this example. The following is an example configuration.
 
 ```
 <source>
@@ -150,7 +150,7 @@ In this example, as described in the figure, fluent-plugin-mqtt-io, fluent-plugi
 
 ```
 
-In this example, the following mapping is assumed to be created at ElasticSearch.
+The following mapping is assumed to be created at ElasticSearch.
 
 ```
 
