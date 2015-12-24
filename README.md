@@ -34,6 +34,7 @@ Input Plugin can be used via source directive in the configuration.
   type mqtt
   bind 127.0.0.1
   port 1883
+  format json
 </source>
 
 ```
@@ -42,6 +43,9 @@ The default MQTT topic is "#". Configurable options are the following:
 
 - bind: IP address of MQTT broker
 - port: Port number of MQTT broker
+- format (mandatory): Input parser can be chosen, e.g. json, xml
+  - in order to use xml format, you need to install [fluent-plugin-xml-parser](https://github.com/toyokazu/fluent-plugin-xml-parser).
+  - default time_key field for json format is 'time'
 - topic: Topic name to be subscribed
 - username: User name for authentication
 - password: Password for authentication
@@ -49,9 +53,6 @@ The default MQTT topic is "#". Configurable options are the following:
   - ca_file: CA certificate file path
   - key_file: private key file path
   - cert_file: certificate file path
-- format: Input parser can be chosen, e.g. json, xml
-  - in order to use xml format, you need to install [fluent-plugin-xml-parser](https://github.com/toyokazu/fluent-plugin-xml-parser).
-  - default format is 'json' and default time_key field for json format is 'time'
 
 Input Plugin supports @label directive.
 
