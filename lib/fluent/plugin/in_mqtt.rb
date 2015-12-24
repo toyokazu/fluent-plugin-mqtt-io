@@ -5,7 +5,7 @@ module Fluent
     config_param :port, :integer, :default => 1883
     config_param :bind, :string, :default => '127.0.0.1'
     config_param :topic, :string, :default => '#'
-    config_param :format, :string, :default => 'none'
+    config_param :format, :string, :default => 'json'
     config_param :username, :string, :default => nil
     config_param :password, :string, :default => nil
     config_param :ssl, :bool, :default => nil
@@ -61,6 +61,10 @@ module Fluent
       begin
         topic.gsub!("/","\.")
         @parser.parse(message) {|time, record|
+          if time.nil?
+            $log.debug "Since time_key field is nil, Fluent::Engine.now is used."
+            time = Fluent::Engine.now
+          end
           $log.debug "#{topic}, #{time}, #{record}"
           router.emit(topic, time, record)
         }

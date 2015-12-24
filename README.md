@@ -24,7 +24,7 @@ Or install it yourself as:
 
 ## Usage
 
-fluent-plugin-mqtt provides Input and Output Plugins for MQTT.
+fluent-plugin-mqtt-io provides Input and Output Plugins for MQTT.
 
 Input Plugin can be used via source directive in the configuration.
 
@@ -51,6 +51,7 @@ The default MQTT topic is "#". Configurable options are the following:
   - cert_file: certificate file path
 - format: Input parser can be chosen, e.g. json, xml
   - in order to use xml format, you need to install [fluent-plugin-xml-parser](https://github.com/toyokazu/fluent-plugin-xml-parser).
+  - default format is 'json' and default time_key field for json format is 'time'
 
 Input Plugin supports @label directive.
 
