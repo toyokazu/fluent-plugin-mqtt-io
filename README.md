@@ -113,7 +113,9 @@ You can also use mqtt_buf type which is implemented as BufferedOutput.
 
 ## Use case examples
 
-### Libelium sensor data collection
+### Sensor data collection (not for Libelium now)
+
+*additional description (2015-12-25)*: Thanks to the updates by Libelium, Meshlium farmware now supports flexible output format configuration including JSON. As a result, data conversion by XmlParser is not required for this use case. The following description is kept just for sharing know-how of data conversion in fluentd.
 
 There are many kinds of commercial sensor products on the market, e.g. [Libelium](http://www.libelium.com/). Major sensor products support MQTT to upload sensor data. The following example shows how to store uploaded Libelium sensor data into ElasticSearch.
 
