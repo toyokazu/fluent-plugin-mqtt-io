@@ -47,12 +47,31 @@ module Fluent
       opts[:ca_file] = @ca_file if @ca_file
       opts[:cert_file] = @cert_file if @cert_file
       opts[:key_file] = @key_file if @key_file
-      @connect = MQTT::Client.connect(opts)
-      @connect.subscribe(@topic)
 
-      @thread = Thread.new do
-        @connect.get do |topic,message|
-          emit topic, message
+      # In order to handle Exception raised from reading Thread
+      # in MQTT::Client caused by network disconnection (during read_byte),
+      # @connect_thread generates connection.
+      @client = MQTT::Client.new(opts)
+      @connect_thread = Thread.new do
+        while (true)
+          begin
+            @client.disconnect if @client.connected?
+            @client.connect
+            @client.subscribe(@topic)
+            @get_thread.kill if !@get_thread.nil? && @get_thread.alive?
+            @get_thread = Thread.new do
+              @client.get do |topic,message|
+                emit topic, message
+              end
+            end
+            sleep
+          rescue MQTT::ProtocolException => pe
+            $log.debug "Handling #{pe.class}: #{pe.message}"
+            next
+          rescue Timeout::Error => te
+            $log.debug "Handling #{te.class}: #{te.message}"
+            next
+          end
         end
       end
     end
@@ -75,8 +94,9 @@ module Fluent
     end
 
     def shutdown
-      @thread.kill
-      @connect.disconnect
+      @get_thread.kill
+      @connect_thread.kill
+      @client.disconnect
     end
   end
 end

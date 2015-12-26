@@ -23,7 +23,7 @@ module Fluent
     def write(chunk)
       json = json_parse(chunk.read)
       $log.debug "#{json[0]}, #{format_time(json[1])}, #{json[2]}"
-      @connect.publish(rewrite_tag(json[0]), (json[2].merge(timestamp_hash(json[1]))).to_json)
+      @client.publish(rewrite_tag(json[0]), (json[2].merge(timestamp_hash(json[1]))).to_json)
       $log.flush
     end
   end
