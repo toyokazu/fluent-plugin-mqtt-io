@@ -16,6 +16,7 @@ module Fluent
       base.config_param :time_format, :string, :default => nil
       base.config_param :topic_rewrite_pattern, :string, :default => nil
       base.config_param :topic_rewrite_replacement, :string, :default => nil
+      base.config_param :bulk_trans_sep, :string, :default => "\t"
     end
 
     require 'mqtt'
@@ -35,6 +36,7 @@ module Fluent
       @time_format ||= conf['time_format']
       @topic_rewrite_pattern ||= conf['topic_rewrite_pattern']
       @topic_rewrite_replacement ||= conf['topic_rewrite_replacement']
+      @bulk_trans_sep ||= conf['bulk_trans_sep']
     end
 
     # This method is called when starting.

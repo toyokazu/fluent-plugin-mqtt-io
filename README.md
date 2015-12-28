@@ -26,6 +26,8 @@ Or install it yourself as:
 
 fluent-plugin-mqtt-io provides Input and Output Plugins for MQTT.
 
+### Input Plugin (Fluet::MqttInput)
+
 Input Plugin can be used via source directive in the configuration.
 
 ```
@@ -44,9 +46,11 @@ The default MQTT topic is "#". Configurable options are the following:
 - bind: IP address of MQTT broker
 - port: Port number of MQTT broker
 - format (mandatory): Input parser can be chosen, e.g. json, xml
-  - in order to use xml format, you need to install [fluent-plugin-xml-parser](https://github.com/toyokazu/fluent-plugin-xml-parser).
-  - default time_key field for json format is 'time'
+  - In order to use xml format, you need to install [fluent-plugin-xml-parser](https://github.com/toyokazu/fluent-plugin-xml-parser).
+  - Default time_key field for json format is 'time'
 - topic: Topic name to be subscribed
+- bulk_trans: Enable bulk transfer to support buffered output (mqtt_buf, Fluent::MqttBufferedOutput, defaut: true)
+- bulk_trans_sep: A message separator for bulk transfer. The default separator is "\t".
 - username: User name for authentication
 - password: Password for authentication
 - ssl: set true if you want to use SSL/TLS. If set to true, the following parameter must be provided
@@ -55,6 +59,8 @@ The default MQTT topic is "#". Configurable options are the following:
   - cert_file: certificate file path
 
 Input Plugin supports @label directive.
+
+### Output Plugin (Fluent::MqttOutput, Fluent::MqttBufferedOutput)
 
 Output Plugin can be used via match directive.
 
@@ -68,7 +74,7 @@ Output Plugin can be used via match directive.
 
 ```
 
-The options are basically the same as Input Plugin. The difference is the following.
+The options are basically the same as Input Plugin except for "format" and "bulk_trans". Additional options for Output Plugin are the following.
 
 - time_key: An attribute name used for timestamp field genarated from fluentd time field. Default is nil (omitted).
   If this option is omitted, timestamp field is not appended to the output record.
@@ -93,7 +99,7 @@ The topic name or tag name, e.g. "topic", received from an event can not be publ
 
 ```
 
-You can also use mqtt_buf type which is implemented as BufferedOutput.
+You can also use mqtt_buf type which is implemented as Fluent::MqttBufferedOutput.
 
 ```
 
@@ -110,6 +116,7 @@ You can also use mqtt_buf type which is implemented as BufferedOutput.
 
 ```
 
+When a plugin implemented as Fluent::BufferedOutput, fluentd stores the received messages into buffers (Fluent::MemoryBuffer is used as default) separated by tag names. Writer Threads emit those stored messages periodically in the specified interval. In MqttBufferedOutput, the stored messages are concatenated with 'bulk_trans_sep' (default: "\t"). This function reduces the number of messages sent via MQTT if data producing interval of sensors are smaller than publish interval (flush_interval). The concatinated messages can be properly handled by Fluent::MqttInput plugin by specifying 'bulk_trans' option.
 
 ## Use case examples
 

@@ -6,6 +6,8 @@ module Fluent
     config_param :bind, :string, :default => '127.0.0.1'
     config_param :topic, :string, :default => '#'
     config_param :format, :string, :default => 'json'
+    config_param :bulk_trans, :bool, :default => true
+    config_param :bulk_trans_sep, :string, :default => "\t"
     config_param :username, :string, :default => nil
     config_param :password, :string, :default => nil
     config_param :ssl, :bool, :default => nil
@@ -24,6 +26,8 @@ module Fluent
       super
       @bind ||= conf['bind']
       @topic ||= conf['topic']
+      @bulk_trans ||= conf['bulk_trans']
+      @bulk_trans_sep ||= conf['bulk_trans_sep']
       @port ||= conf['port']
       @username ||= conf['username']
       @password ||= conf['password']
@@ -60,8 +64,8 @@ module Fluent
             @client.subscribe(@topic)
             @get_thread.kill if !@get_thread.nil? && @get_thread.alive?
             @get_thread = Thread.new do
-              @client.get do |topic,message|
-                emit topic, message
+              @client.get do |topic, message|
+                emit(topic, message)
               end
             end
             sleep
@@ -76,17 +80,27 @@ module Fluent
       end
     end
 
-    def emit topic, message
+    def parse(message)
+      @parser.parse(message) do |time, record|
+        if time.nil?
+          $log.debug "Since time_key field is nil, Fluent::Engine.now is used."
+          time = Fluent::Engine.now
+        end
+        $log.debug "#{topic}, #{time}, #{record}"
+        return [time, record]
+      end
+    end
+
+    def emit(topic, message)
       begin
         topic.gsub!("/","\.")
-        @parser.parse(message) {|time, record|
-          if time.nil?
-            $log.debug "Since time_key field is nil, Fluent::Engine.now is used."
-            time = Fluent::Engine.now
+        if @bulk_trans
+          message.split(@bulk_trans_sep).each do |m|
+            router.emit(topic, *parse(m))
           end
-          $log.debug "#{topic}, #{time}, #{record}"
-          router.emit(topic, time, record)
-        }
+        else
+          router.emit(topic, *parse(message))
+        end
       rescue Exception => e
         $log.error :error => e.to_s
         $log.debug_backtrace(e.backtrace)
