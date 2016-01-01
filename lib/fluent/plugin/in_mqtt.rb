@@ -32,6 +32,7 @@ module Fluent
       @username ||= conf['username']
       @password ||= conf['password']
       configure_parser(conf)
+      @reconn_interval = 2
     end
 
     def configure_parser(conf)
@@ -68,6 +69,7 @@ module Fluent
                 emit(topic, message)
               end
             end
+            @reconn_interval = 2
             sleep
           rescue MQTT::ProtocolException => pe
             $log.debug "Handling #{pe.class}: #{pe.message}"
@@ -75,6 +77,14 @@ module Fluent
           rescue Timeout::Error => te
             $log.debug "Handling #{te.class}: #{te.message}"
             next
+          rescue Errno::ECONNREFUSED => ce
+            $log.debug "Server seems to be down... Retry in #{@reconn_interval} sec #{ce.class}: #{ce.message}"
+            sleep @reconn_interval
+            @reconn_interval = @reconn_interval * 2
+            next
+          rescue => oe
+            $log.debug "Other Exception #{oe.class}: #{oe.message}"
+            exit 1
           end
         end
       end
