@@ -53,6 +53,7 @@ The default MQTT topic is "#". Configurable options are the following:
 - bulk_trans_sep: A message separator for bulk transfer. The default separator is "\t".
 - username: User name for authentication
 - password: Password for authentication
+- keep_alive: An interval of sending keep alive packet (default 15 sec)
 - ssl: set true if you want to use SSL/TLS. If set to true, the following parameter must be provided
   - ca_file: CA certificate file path
   - key_file: private key file path
