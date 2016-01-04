@@ -34,7 +34,7 @@ Input Plugin can be used via source directive in the configuration.
 
 <source>
   type mqtt
-  bind 127.0.0.1
+  host 127.0.0.1
   port 1883
   format json
 </source>
@@ -43,7 +43,7 @@ Input Plugin can be used via source directive in the configuration.
 
 The default MQTT topic is "#". Configurable options are the following:
 
-- bind: IP address of MQTT broker
+- host: IP address of MQTT broker
 - port: Port number of MQTT broker
 - format (mandatory): Input parser can be chosen, e.g. json, xml
   - In order to use xml format, you need to install [fluent-plugin-xml-parser](https://github.com/toyokazu/fluent-plugin-xml-parser).
@@ -75,7 +75,7 @@ Output Plugin can be used via match directive.
 
 ```
 
-The options are basically the same as Input Plugin except for "host" (bind for Input), "format" and "bulk_trans" (only for Input). Additional options for Output Plugin are the following.
+The options are basically the same as Input Plugin except for "format" and "bulk_trans" (only for Input). Additional options for Output Plugin are the following.
 
 - time_key: An attribute name used for timestamp field genarated from fluentd time field. Default is nil (omitted).
   If this option is omitted, timestamp field is not appended to the output record.
@@ -134,7 +134,7 @@ As described in the figure, fluent-plugin-mqtt-io, fluent-plugin-xml-parser and 
 ```
 <source>
   type mqtt
-  bind 192.168.1.100
+  host 192.168.1.100
   port 1883
   topic 'Libelium/+/+'
   format xml
@@ -192,7 +192,7 @@ Sometimes, MQTT message conversion must be done in the network because the proce
 ```
 <source>
   type mqtt
-  bind 192.168.1.100
+  host 192.168.1.100
   port 1883
   topic 'Libelium/+/+'
   format xml

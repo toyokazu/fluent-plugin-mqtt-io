@@ -3,7 +3,7 @@ module Fluent
     Plugin.register_input('mqtt', self)
 
     config_param :port, :integer, :default => 1883
-    config_param :bind, :string, :default => '127.0.0.1'
+    config_param :host, :string, :default => '127.0.0.1'
     config_param :topic, :string, :default => '#'
     config_param :format, :string, :default => 'json'
     config_param :bulk_trans, :bool, :default => true
@@ -25,7 +25,7 @@ module Fluent
 
     def configure(conf)
       super
-      @bind ||= conf['bind']
+      @host ||= conf['host']
       @topic ||= conf['topic']
       @bulk_trans ||= conf['bulk_trans']
       @bulk_trans_sep ||= conf['bulk_trans_sep']
@@ -59,9 +59,9 @@ module Fluent
     end
 
     def start
-      $log.debug "start mqtt #{@bind}"
+      $log.debug "start mqtt #{@host}"
       opts = {
-        host: @bind,
+        host: @host,
         port: @port,
         username: @username,
         password: @password,
