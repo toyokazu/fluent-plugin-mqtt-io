@@ -2,10 +2,10 @@ module Fluent
   module MqttOutputMixin
     # config_param defines a parameter. You can refer a parameter via @path instance variable
     # Without :default, a parameter is required.
-    
+
     def self.included(base)
       base.config_param :port, :integer, :default => 1883
-      base.config_param :bind, :string, :default => '127.0.0.1'
+      base.config_param :host, :string, :default => '127.0.0.1'
       base.config_param :username, :string, :default => nil
       base.config_param :password, :string, :default => nil
       base.config_param :keep_alive, :integer, :default => 15
@@ -29,7 +29,7 @@ module Fluent
       super
 
       # You can also refer raw parameter via conf[name].
-      @bind ||= conf['bind']
+      @host ||= conf['host']
       @port ||= conf['port']
       @username ||= conf['username']
       @password ||= conf['password']
@@ -63,9 +63,9 @@ module Fluent
     def start
       super
 
-      $log.debug "start mqtt #{@bind}"
+      $log.debug "start mqtt #{@host}"
       opts = {
-        host: @bind,
+        host: @host,
         port: @port,
         username: @username,
         password: @password,
@@ -141,13 +141,13 @@ module Fluent
       end
     end
 
-    def json_parse message
+    def json_parse(message)
       begin
         y = Yajl::Parser.new
         y.parse(message)
       rescue
         $log.error "JSON parse error", :error => $!.to_s, :error_class => $!.class.to_s
-        $log.warn_backtrace $!.backtrace         
+        $log.warn_backtrace $!.backtrace
       end
     end
   end

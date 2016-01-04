@@ -69,13 +69,13 @@ Output Plugin can be used via match directive.
 
 <match topic.**>
   type mqtt
-  bind 127.0.0.1
+  host 127.0.0.1
   port 1883
 </match>
 
 ```
 
-The options are basically the same as Input Plugin except for "format" and "bulk_trans". Additional options for Output Plugin are the following.
+The options are basically the same as Input Plugin except for "host" (bind for Input), "format" and "bulk_trans" (only for Input). Additional options for Output Plugin are the following.
 
 - time_key: An attribute name used for timestamp field genarated from fluentd time field. Default is nil (omitted).
   If this option is omitted, timestamp field is not appended to the output record.
@@ -92,7 +92,7 @@ The topic name or tag name, e.g. "topic", received from an event can not be publ
 
 <match topic.**>
   type mqtt
-  bind 127.0.0.1
+  host 127.0.0.1
   port 1883
   topic_rewrite_pattern '^([\w\/]+)$'
   topic_rewrite_replacement '\1/rewritten'
@@ -106,7 +106,7 @@ You can also use mqtt_buf type which is implemented as Fluent::MqttBufferedOutpu
 
 <match topic.**>
   type mqtt_buf
-  bind 127.0.0.1
+  host 127.0.0.1
   port 1883
   topic_rewrite_pattern '^([\w\/]+)$'
   topic_rewrite_replacement '\1/rewritten'
@@ -206,7 +206,7 @@ Sometimes, MQTT message conversion must be done in the network because the proce
 <label @MQTT_OUT>
   <match **>
     type mqtt
-    bind 192.168.1.100
+    host 192.168.1.100
     port 1883
     topic_rewrite_pattern '^([\w\/]+)$'
     topic_rewrite_replacement '\1/rewritten'
@@ -235,4 +235,3 @@ MQTT output plugin can be used as the following. If you have tiny computers like
 ## License
 
 The gem is available as open source under the terms of the [MIT License](http://opensource.org/licenses/MIT).
-
