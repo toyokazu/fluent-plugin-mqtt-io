@@ -9,8 +9,8 @@ module Fluent
 
     def emit(tag, es, chain)
       es.each {|time,record|
-        $log.debug "#{tag}, #{format_time(time)}, #{record}"
-        @client.publish(rewrite_tag(tag), record.merge(timestamp_hash(time)).to_json)
+        $log.debug "#{tag}, #{format_time(time)}, #{add_send_time(record)}"
+        @client.publish(rewrite_tag(tag), add_send_time(record).merge(timestamp_hash(time)).to_json)
       }
       $log.flush
 

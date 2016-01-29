@@ -15,6 +15,8 @@ module Fluent
     config_param :ca_file, :string, :default => nil
     config_param :key_file, :string, :default => nil
     config_param :cert_file, :string, :default => nil
+    config_param :recv_time, :bool, :default => false
+    config_param :recv_time_key, :string, :default => "recv_time"
 
     require 'mqtt'
 
@@ -25,14 +27,6 @@ module Fluent
 
     def configure(conf)
       super
-      @host ||= conf['host']
-      @topic ||= conf['topic']
-      @bulk_trans ||= conf['bulk_trans']
-      @bulk_trans_sep ||= conf['bulk_trans_sep']
-      @port ||= conf['port']
-      @username ||= conf['username']
-      @password ||= conf['password']
-      @keep_alive ||= conf['keep_alive']
       configure_parser(conf)
       init_retry_interval
     end
@@ -51,9 +45,8 @@ module Fluent
     end
 
     def sleep_retry_interval(e, message)
-      $log.debug "#{message}"
-      $log.debug "#{e.class}: #{e.message}"
-      $log.debug "Retry in #{@retry_interval} sec"
+      $log.error "#{message},#{e.class},#{e.message}"
+      $log.error "Retry in #{@retry_interval} sec"
       sleep @retry_interval
       increment_retry_interval
     end
@@ -107,14 +100,23 @@ module Fluent
       end
     end
 
+    def add_recv_time(record)
+      if @recv_time
+        # recv_time is recorded in ms
+        record.merge({@recv_time_key => Time.now.instance_eval { self.to_i * 1000 + (usec/1000) }})
+      else
+        record
+      end
+    end
+
     def parse(message)
       @parser.parse(message) do |time, record|
         if time.nil?
           $log.debug "Since time_key field is nil, Fluent::Engine.now is used."
           time = Fluent::Engine.now
         end
-        $log.debug "#{topic}, #{time}, #{record}"
-        return [time, record]
+        $log.debug "#{topic}, #{time}, #{add_recv_time(record)}"
+        return [time, add_recv_time(record)]
       end
     end
 

@@ -18,6 +18,8 @@ module Fluent
       base.config_param :topic_rewrite_pattern, :string, :default => nil
       base.config_param :topic_rewrite_replacement, :string, :default => nil
       base.config_param :bulk_trans_sep, :string, :default => "\t"
+      base.config_param :send_time, :bool, :default => false
+      base.config_param :send_time_key, :string, :default => "send_time"
     end
 
     require 'mqtt'
@@ -27,18 +29,6 @@ module Fluent
     # If the configuration is invalid, raise Fluent::ConfigError.
     def configure(conf)
       super
-
-      # You can also refer raw parameter via conf[name].
-      @host ||= conf['host']
-      @port ||= conf['port']
-      @username ||= conf['username']
-      @password ||= conf['password']
-      @keep_alive ||= conf['keep_alive']
-      @time_key ||= conf['time_key']
-      @time_format ||= conf['time_format']
-      @topic_rewrite_pattern ||= conf['topic_rewrite_pattern']
-      @topic_rewrite_replacement ||= conf['topic_rewrite_replacement']
-      @bulk_trans_sep ||= conf['bulk_trans_sep']
       init_retry_interval
     end
 
@@ -51,9 +41,8 @@ module Fluent
     end
 
     def sleep_retry_interval(e, message)
-      $log.debug "#{message}"
-      $log.debug "#{e.class}: #{e.message}"
-      $log.debug "Retry in #{@retry_interval} sec"
+      $log.error "#{message},#{e.class},#{e.message}"
+      $log.error "Retry in #{@retry_interval} sec"
       sleep @retry_interval
       increment_retry_interval
     end
@@ -132,6 +121,16 @@ module Fluent
         {@time_key => format_time(time)}
       end
     end
+
+    def add_send_time(record)
+      if @send_time
+        # send_time is recorded in ms
+        record.merge({@send_time_key => Time.now.instance_eval { self.to_i * 1000 + (usec/1000) }})
+      else
+        record
+      end
+    end
+                  
 
     def rewrite_tag(tag)
       if @topic_rewrite_pattern.nil?

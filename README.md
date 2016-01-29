@@ -58,6 +58,8 @@ The default MQTT topic is "#". Configurable options are the following:
   - ca_file: CA certificate file path
   - key_file: private key file path
   - cert_file: certificate file path
+- recv_time: Add receive time to message in millisecond (ms) as integer for debug and performance/delay analysis
+- recv_time_key: An attribute of recv_time
 
 Input Plugin supports @label directive.
 
@@ -82,6 +84,8 @@ The options are basically the same as Input Plugin except for "format" and "bulk
 - time_format: Output format of timestamp field. Default is ISO8601. You can specify your own format by using TimeParser.
 - topic_rewrite_pattern: Regexp pattern to extract replacement words from received topic or tag name
 - topic_rewrite_replacement: Topic name used for the publish using extracted pattern
+- send_time: Add send time to message in millisecond (ms) as integer for debug and performance/delay analysis
+- send_time_key: An attribute of recv_time
 
 If you use different source, e.g. the other MQTT broker, log file and so on, there is no need to specifie topic rewriting. Skip the following descriptions.
 
