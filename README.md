@@ -5,7 +5,7 @@ Mqtt::IO Plugin is deeply inspired by Fluent::Plugin::Mqtt.
 
 https://github.com/yuuna/fluent-plugin-mqtt
 
-Mqtt::IO plugin focus on federating components, e.g. sensors, messaging platform and databases.
+Mqtt::IO plugin focus on federating components, e.g. sensors, messaging platform and databases. Encryption/Decription is not supported in this plugin but [fluent-plugin-jwt-filter](https://github.com/toyokazu/fluent-plugin-jwt-filter) can be used to encrypt/decrypt messages using JSON Web Token technology.
 
 ## Installation
 
@@ -43,23 +43,25 @@ Input Plugin can be used via source directive in the configuration.
 
 The default MQTT topic is "#". Configurable options are the following:
 
-- host: IP address of MQTT broker
-- port: Port number of MQTT broker
-- format (mandatory): Input parser can be chosen, e.g. json, xml
+- **host**: IP address of MQTT broker
+- **port**: Port number of MQTT broker
+- **format** (mandatory): Input parser can be chosen, e.g. json, xml
   - In order to use xml format, you need to install [fluent-plugin-xml-parser](https://github.com/toyokazu/fluent-plugin-xml-parser).
   - Default time_key field for json format is 'time'
-- topic: Topic name to be subscribed
-- bulk_trans: Enable bulk transfer to support buffered output (mqtt_buf, Fluent::MqttBufferedOutput, defaut: true)
-- bulk_trans_sep: A message separator for bulk transfer. The default separator is "\t".
-- username: User name for authentication
-- password: Password for authentication
-- keep_alive: An interval of sending keep alive packet (default 15 sec)
-- ssl: set true if you want to use SSL/TLS. If set to true, the following parameter must be provided
-  - ca_file: CA certificate file path
-  - key_file: private key file path
-  - cert_file: certificate file path
-- recv_time: Add receive time to message in millisecond (ms) as integer for debug and performance/delay analysis
-- recv_time_key: An attribute of recv_time
+- **topic**: Topic name to be subscribed
+- **bulk_trans**: Enable bulk transfer to support buffered output (mqtt_buf, Fluent::MqttBufferedOutput, defaut: true)
+- **bulk_trans_sep**: A message separator for bulk transfer. The default separator is "\t".
+- **username**: User name for authentication
+- **password**: Password for authentication
+- **keep_alive**: An interval of sending keep alive packet (default 15 sec)
+- **ssl**: set true if you want to use SSL/TLS. If set to true, the following parameter must be provided
+  - **ca_file**: CA certificate file path
+  - **key_file**: private key file path
+  - **cert_file**: certificate file path
+- **recv_time**: Add receive time to message in millisecond (ms) as integer for debug and performance/delay analysis
+- **recv_time_key**: An attribute of recv_time
+- **initial_interval**: An initial value of retry interval (s) (default 1)
+- **retry_inc_ratio**: An increase ratio of retry interval per connection failure (default 2 (double)). It may be better to set the value to 1 in a mobile environment for eager reconnection.
 
 Input Plugin supports @label directive.
 

@@ -20,6 +20,8 @@ module Fluent
       base.config_param :bulk_trans_sep, :string, :default => "\t"
       base.config_param :send_time, :bool, :default => false
       base.config_param :send_time_key, :string, :default => "send_time"
+      base.config_param :initial_interval, :integer, :default => 1
+      base.config_param :retry_inc_ratio, :integer, :default => 2
     end
 
     require 'mqtt'
@@ -33,11 +35,11 @@ module Fluent
     end
 
     def init_retry_interval
-      @retry_interval = 1
+      @retry_interval = @initial_interval
     end
 
     def increment_retry_interval
-      @retry_interval = @retry_interval * 2
+      @retry_interval = @retry_interval * @retry_inc_ratio
     end
 
     def sleep_retry_interval(e, message)

@@ -17,6 +17,8 @@ module Fluent
     config_param :cert_file, :string, :default => nil
     config_param :recv_time, :bool, :default => false
     config_param :recv_time_key, :string, :default => "recv_time"
+    config_param :initial_interval, :integer, :default => 1
+    config_param :retry_inc_ratio, :integer, :default => 2
 
     require 'mqtt'
 
@@ -37,11 +39,11 @@ module Fluent
     end
     
     def init_retry_interval
-      @retry_interval = 1
+      @retry_interval = @initial_interval
     end
 
     def increment_retry_interval
-      @retry_interval = @retry_interval * 2
+      @retry_interval = @retry_interval * @retry_inc_ratio
     end
 
     def sleep_retry_interval(e, message)
