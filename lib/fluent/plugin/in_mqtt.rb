@@ -97,7 +97,7 @@ module Fluent::Plugin
       }
       opts[:username] = @security.username if @security.respond_to?(:username)
       opts[:password] = @security.password if @security.respond_to?(:password)
-      if @security.use_tls
+      if @security.respond_to?(:use_tls) && @security.use_tls
         opts[:ssl] = @security.use_tls
         opts[:ca_file] = @security.tls.ca_file
         opts[:cert_file] = @security.tls.cert_file
