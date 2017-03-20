@@ -87,11 +87,11 @@ module Fluent::Plugin
       opts = {
         host: @host,
         port: @port,
-        username: @security.username,
-        password: @secuiryt.password,
         keep_alive: @keep_alive
       }
-      if @security.use_tls
+      opts[:username] = @security.username if @security.respond_to?(:username)
+      opts[:password] = @security.password if @security.respond_to?(:password)
+      if @security.respond_to?(:use_tls) && @security.use_tls
         opts[:ssl] = @security.use_tls
         opts[:ca_file] = @security.tls.ca_file
         opts[:cert_file] = @security.tls.cert_file
