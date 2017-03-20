@@ -109,7 +109,7 @@ module Fluent::Plugin
       # @connect_thread generates connection.
       @client = MQTT::Client.new(opts)
       @get_thread = nil
-      @connect_thread = thread_create(:mqtt_input_connect, &method(:connect_loop))
+      @connect_thread = Thread.new(&method(:connect_loop))
     end
 
     def connect_loop
