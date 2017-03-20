@@ -11,10 +11,10 @@ module Fluent::Plugin
 
     MQTT_PORT = 1883
 
-    desc 'The port to connect to.'
-    config_param :port, :integer, :default => MQTT_PORT
     desc 'The address to connect to.'
     config_param :host, :string, :default => '127.0.0.1'
+    desc 'The port to connect to.'
+    config_param :port, :integer, :default => MQTT_PORT
     desc 'The topic to subscribe.'
     config_param :topic, :string, :default => '#'
     desc 'The format to receive.'
