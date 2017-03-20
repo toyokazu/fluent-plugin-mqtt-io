@@ -7,7 +7,7 @@ module Fluent::Plugin
   class MqttInput < Input
     Fluent::Plugin.register_input('mqtt', self)
 
-    helpers :thread
+    helpers :thread, :compat_parameters, :parser
 
     MQTT_PORT = 1883
 
@@ -68,8 +68,15 @@ module Fluent::Plugin
     end
 
     def configure_parser(conf)
-      @parser = Plugin.new_parser(conf['format'])
-      @parser.configure(conf)
+      compat_parameters_convert(conf, :parser)
+      parser_config = conf.elements('parse').first
+      unless parser_config
+        raise Fluent::ConfigError, "<parse> section is required."
+      end
+      unless parser_config["@type"]
+        raise Fluent::ConfigError, "parse/@type is required."
+      end
+      @parser = parser_create(conf: parser_config)
     end
 
     def init_retry_interval
