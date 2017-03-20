@@ -70,12 +70,6 @@ module Fluent::Plugin
     def configure_parser(conf)
       compat_parameters_convert(conf, :parser)
       parser_config = conf.elements('parse').first
-      unless parser_config
-        raise Fluent::ConfigError, "<parse> section is required."
-      end
-      unless parser_config["@type"]
-        raise Fluent::ConfigError, "parse/@type is required."
-      end
       @parser = parser_create(conf: parser_config)
     end
 
@@ -99,10 +93,10 @@ module Fluent::Plugin
       opts = {
         host: @host,
         port: @port,
-        username: @security.username,
-        password: @security.password,
         keep_alive: @keep_alive
       }
+      opts[:username] = @security.username if @security.respond_to?(:username)
+      opts[:password] = @security.password if @security.respond_to?(:password)
       if @security.use_tls
         opts[:ssl] = @security.use_tls
         opts[:ca_file] = @security.tls.ca_file
