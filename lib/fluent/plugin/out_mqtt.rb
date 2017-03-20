@@ -50,7 +50,8 @@ module Fluent::Plugin
     # If the configuration is invalid, raise Fluent::ConfigError.
     def configure(conf)
       compat_parameters_convert(conf, :formatter, :buffer, :inject, default_chunk_key: "time")
-      @formatter = formatter_create(conf: conf)
+      formatter_config = conf.elements('format').first
+      @formatter = formatter_create(conf: formatter_config)
       init_retry_interval
     end
 
