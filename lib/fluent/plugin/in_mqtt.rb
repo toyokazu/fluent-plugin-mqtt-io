@@ -96,8 +96,9 @@ module Fluent::Plugin
       if @security.use_tls
         opts[:ssl] = @security.use_tls
         opts[:ca_file] = @security.tls.ca_file
-      opts[:cert_file] = @security.tls.cert_file
-      opts[:key_file] = @security.tls.key_file
+        opts[:cert_file] = @security.tls.cert_file
+        opts[:key_file] = @security.tls.key_file
+      end
 
       # In order to handle Exception raised from reading Thread
       # in MQTT::Client caused by network disconnection (during read_byte),
@@ -135,9 +136,6 @@ module Fluent::Plugin
           next
         end
       end
-    end
-
-    def get_loop
     end
 
     def add_recv_time(record)
