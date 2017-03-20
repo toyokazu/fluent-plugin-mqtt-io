@@ -164,7 +164,7 @@ module Fluent::Plugin
 
     def emit(topic, message)
       begin
-        topic.gsub!("/","\.")
+        tag = topic.gsub("/","\.")
         time, record = parse(message)
         if record.is_a?(Array)
           mes = Fluent::MultiEventStream.new
