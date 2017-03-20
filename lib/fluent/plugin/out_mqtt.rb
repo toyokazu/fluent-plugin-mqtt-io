@@ -1,3 +1,8 @@
+require 'fluent/plugin/input'
+require 'fluent/event'
+require 'fluent/time'
+require 'mqtt'
+
 module Fluent::Plugin
   class MqttOutput < Output
     Fluent::Plugin.register_output('mqtt', self)
