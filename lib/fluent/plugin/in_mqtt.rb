@@ -154,7 +154,7 @@ module Fluent::Plugin
     def parse(message)
       @parser.parse(message) do |time, record|
         if time.nil?
-          $log.debug "Since time_key field is nil, Time.now is used."
+          $log.debug "Since time_key field is nil, Fluent::EventTime.now is used."
           time = Fluent::EventTime.now
         end
         $log.debug "#{topic}, #{time}, #{add_recv_time(record)}"
@@ -184,6 +184,7 @@ module Fluent::Plugin
 
     def shutdown
       @get_thread.kill
+      @connect_thread.kill
       @client.disconnect
     end
   end
