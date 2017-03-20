@@ -5,7 +5,7 @@ require 'mqtt'
 
 module Fluent::Plugin
   class MqttInput < Input
-    Plugin.register_input('mqtt', self)
+    Fluent::Plugin.register_input('mqtt', self)
 
     helpers :thread
 
