@@ -169,8 +169,7 @@ module Fluent::Plugin
         if record.is_a?(Array)
           mes = Fluent::MultiEventStream.new
           record.each do |single_record|
-            single_time = single_record.delete("time") || time
-            mes.add(single_time, single_record)
+            mes.add(@parser.parse_time(single_record), single_record)
           end
           router.emit_stream(tag, mes)
         else
