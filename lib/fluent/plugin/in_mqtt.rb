@@ -56,11 +56,6 @@ module Fluent::Plugin
       config_param :recv_time_key, :string, :default => "recv_time"
     end
 
-    # Define `router` method of v0.12 to support v0.10 or earlier
-    unless method_defined?(:router)
-      define_method("router") { Fluent::Engine }
-    end
-
     def configure(conf)
       super
       configure_parser(conf)
