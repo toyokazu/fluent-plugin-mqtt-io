@@ -200,12 +200,12 @@ module Fluent::Plugin
       else
         es = inject_values_to_event_stream(tag, es)
         array = []
-        es.each do |time,record|
+        es.each do |time, record|
           $log.debug "#{rewrite_tag(tag)}, #{add_send_time(record)}"
           array << add_send_time(record)
         end
         publish_error_handler do
-          @client.publish(rewrite_tag(tag), @formatter.format(tag, time, array))
+          @client.publish(rewrite_tag(tag), @formatter.format(tag, Fluent::EventTime.now, array))
         end
       end
       $log.flush
