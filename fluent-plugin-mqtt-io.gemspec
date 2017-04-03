@@ -11,7 +11,7 @@ Gem::Specification.new do |spec|
   spec.summary       = %q{fluentd input/output plugin for mqtt broker}
   spec.description   = %q{fluentd input/output plugin for mqtt broker}
   spec.homepage      = "https://github.com/toyokazu/fluent-plugin-mqtt-io"
-  spec.license       = "MIT"
+  spec.license       = "Apache License Version 2.0"
 
   spec.files         = `git ls-files`.gsub(/images\/[\w\.]+\n/, "").split($/)
   spec.bindir        = spec.files.grep(%r{^bin/}) { |f| File.basename(f) }
