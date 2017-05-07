@@ -12,43 +12,43 @@ module Fluent::Plugin
     MQTT_PORT = 1883
 
     desc 'The address to connect to.'
-    config_param :host, :string, :default => '127.0.0.1'
+    config_param :host, :string, default: '127.0.0.1'
     desc 'The port to connect to.'
-    config_param :port, :integer, :default => MQTT_PORT
+    config_param :port, :integer, default: MQTT_PORT
     desc 'MQTT keep alive interval.'
-    config_param :keep_alive, :integer, :default => 15
+    config_param :keep_alive, :integer, default: 15
     desc 'Topic rewrite matching pattern.'
-    config_param :topic_rewrite_pattern, :string, :default => nil
+    config_param :topic_rewrite_pattern, :string, default: nil
     desc 'Topic rewrite replacement string.'
-    config_param :topic_rewrite_replacement, :string, :default => nil
+    config_param :topic_rewrite_replacement, :string, default: nil
     desc 'Initial retry interval.'
-    config_param :initial_interval, :integer, :default => 1
+    config_param :initial_interval, :integer, default: 1
     desc 'Increasing ratio of retry interval.'
-    config_param :retry_inc_ratio, :integer, :default => 2
+    config_param :retry_inc_ratio, :integer, default: 2
 
     config_section :security, required: false, multi: false do
       ### User based authentication
       desc 'The username for authentication'
-      config_param :username, :string, :default => nil
+      config_param :username, :string, default: nil
       desc 'The password for authentication'
-      config_param :password, :string, :default => nil
+      config_param :password, :string, default: nil
       desc 'Use TLS or not.'
-      config_param :use_tls, :bool, :default => nil
+      config_param :use_tls, :bool, default: nil
       config_section :tls, required: false, multi: true do
         desc 'TLS ca file.'
-        config_param :ca_file, :string, :default => nil
+        config_param :ca_file, :string, default: nil
         desc 'TLS key file.'
-        config_param :key_file, :string, :default => nil
+        config_param :key_file, :string, default: nil
         desc 'TLS cert file.'
-        config_param :cert_file, :string, :default => nil
+        config_param :cert_file, :string, default: nil
       end
     end
 
     config_section :monitor, required: false, multi: false do
       desc 'Recording send time for monitoring.'
-      config_param :send_time, :bool, :default => false
+      config_param :send_time, :bool, default: false
       desc 'Recording key name of send time for monitoring.'
-      config_param :send_time_key, :string, :default => "send_time"
+      config_param :send_time_key, :string, default: "send_time"
     end
 
     # This method is called before starting.
@@ -72,8 +72,8 @@ module Fluent::Plugin
     end
 
     def sleep_retry_interval(e, message)
-      $log.error "#{message},#{e.class},#{e.message}"
-      $log.error "Retry in #{@retry_interval} sec"
+      log.error "#{message},#{e.class},#{e.message}"
+      log.error "Retry in #{@retry_interval} sec"
       sleep @retry_interval
       increment_retry_interval
     end
@@ -95,7 +95,7 @@ module Fluent::Plugin
     def start
       super
 
-      $log.debug "start to connect mqtt broker #{@host}:#{@port}"
+      log.debug "start to connect mqtt broker #{@host}:#{@port}"
       opts = {
         host: @host,
         port: @port,
@@ -182,7 +182,7 @@ module Fluent::Plugin
     def add_send_time(record)
       if @send_time
         # send_time is recorded in ms
-        record.merge({@send_time_key => Fluent::EventTime.now})
+        record.merge({"#{@send_time_key}": Fluent::EventTime.now})
       else
         record
       end
@@ -192,7 +192,7 @@ module Fluent::Plugin
       if es.class == Fluent::OneEventStream
         es = inject_values_to_event_stream(tag, es)
         es.each do |time, record|
-          $log.debug "#{rewrite_tag(tag)}, #{add_send_time(record)}"
+          log.debug "#{rewrite_tag(tag)}, #{add_send_time(record)}"
           publish_error_handler do
             @client.publish(rewrite_tag(tag), @formatter.format(tag, time, add_send_time(record)))
           end
@@ -201,14 +201,14 @@ module Fluent::Plugin
         es = inject_values_to_event_stream(tag, es)
         array = []
         es.each do |time, record|
-          $log.debug "#{rewrite_tag(tag)}, #{add_send_time(record)}"
+          log.debug "#{rewrite_tag(tag)}, #{add_send_time(record)}"
           array << add_send_time(record)
         end
         publish_error_handler do
           @client.publish(rewrite_tag(tag), @formatter.format(tag, Fluent::EventTime.now, array))
         end
       end
-      $log.flush
+      log.flush
     end
 
     def process(tag, es)
