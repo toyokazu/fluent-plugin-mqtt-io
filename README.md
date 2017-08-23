@@ -30,6 +30,8 @@ fluent-plugin-mqtt-io provides Input and Output Plugins for MQTT.
 
 Input Plugin can be used via source directive in the configuration.
 
+For fluent-plugin-mqtt-io <= 0.2.3
+
 ```
 
 <source>
@@ -40,6 +42,20 @@ Input Plugin can be used via source directive in the configuration.
 </source>
 
 ```
+
+For fluent-plugin-mqtt-io ~> v0.3.0
+
+```
+
+<source>
+  @type mqtt
+  host 127.0.0.1
+  port 1883
+  format json
+</source>
+
+```
+
 
 The default MQTT topic is "#". Configurable options are the following:
 
@@ -69,10 +85,24 @@ Input Plugin supports @label directive.
 
 Output Plugin can be used via match directive.
 
+For fluent-plugin-mqtt-io <= 0.2.3
+
 ```
 
 <match topic.**>
   type mqtt
+  host 127.0.0.1
+  port 1883
+</match>
+
+```
+
+For fluent-plugin-mqtt-io ~> v0.3.0
+
+```
+
+<match topic.**>
+  @type mqtt
   host 127.0.0.1
   port 1883
 </match>
@@ -93,11 +123,26 @@ If you use different source, e.g. the other MQTT broker, log file and so on, the
 
 The topic name or tag name, e.g. "topic", received from an event can not be published without modification because if MQTT input plugin connecting to the identical MQTT broker is used as a source, the same message will become an input repeatedly. In order to support data conversion in single MQTT domain, simple topic rewriting should be supported. Since topic is rewritten using #gsub method, 'pattern' and 'replacement' are the same as #gsub arguments.
 
+For fluent-plugin-mqtt-io <= v0.2.3
 
 ```
 
 <match topic.**>
   type mqtt
+  host 127.0.0.1
+  port 1883
+  topic_rewrite_pattern '^([\w\/]+)$'
+  topic_rewrite_replacement '\1/rewritten'
+</match>
+
+```
+
+For fluent-plugin-mqtt-io ~> v0.3.0
+
+```
+
+<match topic.**>
+  @type mqtt
   host 127.0.0.1
   port 1883
   topic_rewrite_pattern '^([\w\/]+)$'
@@ -119,6 +164,25 @@ You can also use mqtt_buf type which is implemented as Fluent::MqttBufferedOutpu
   # You can specify Buffer Plugin options
   buffer_type memory
   flush_interval 1s
+</match>
+
+```
+
+For fluent-plugin-mqtt-io ~> v0.3.0
+
+```
+
+<match topic.**>
+  @type mqtt
+  host 127.0.0.1
+  port 1883
+  topic_rewrite_pattern '^([\w\/]+)$'
+  topic_rewrite_replacement '\1/rewritten'
+  # You can specify Buffer Plugin options
+  <buffer>
+    buffer_type memory
+    flush_interval 1s
+  </buffer>
 </match>
 
 ```

@@ -21,10 +21,12 @@ module Fluent::Plugin
     config_param :format, :string, default: 'json'
     desc 'Specify keep alive interval.'
     config_param :keep_alive, :integer, default: 15
-    desc 'Specify initial interval for reconnection.'
+    desc 'Specify initial connection retry interval.'
     config_param :initial_interval, :integer, default: 1
-    desc 'Specify increasing ratio of reconnection interval.'
+    desc 'Specify increasing ratio of connection retry interval.'
     config_param :retry_inc_ratio, :integer, default: 2
+    desc 'Specify maximum connection retry interval.'
+    config_param :max_retry_interval, :integer, default: 300
 
     # bulk_trans is deprecated
     # multiple entries must be inputted as an Array
@@ -73,13 +75,14 @@ module Fluent::Plugin
     end
 
     def increment_retry_interval
+      return @retry_interval if @retry_interval >= @max_retry_interval
       @retry_interval = @retry_interval * @retry_inc_ratio
     end
 
-    def sleep_retry_interval(e, message)
+    def retry_connect(e, message)
       log.error "#{message},#{e.class},#{e.message}"
       log.error "Retry in #{@retry_interval} sec"
-      sleep @retry_interval
+      timer_execute(:in_mqtt_connect, @retry_interval, repeat: false, &method(:connect))
       increment_retry_interval
     end
 
@@ -104,35 +107,38 @@ module Fluent::Plugin
       # @connect_thread generates connection.
       @client = MQTT::Client.new(opts)
       @get_thread = nil
-      @connect_thread = Thread.new(&method(:connect_loop))
+      unless thread_running?(:in_mqtt_get_loop)
+        thread_create(:in_mqtt_connect, &method(:connect))
+      end
     end
 
-    def connect_loop
-      while (true)
-        begin
-          @get_thread.kill if !@get_thread.nil? && @get_thread.alive?
-          @client.disconnect if @client.connected?
-          @client.connect
-          @client.subscribe(@topic)
-          @get_thread = Thread.new do
+    def rescue_disconnection(*block)
+      begin
+        yield *block
+      rescue MQTT::ProtocolException => e
+        retry_connect(e, "Protocol error occurs.")
+      rescue Timeout::Error => e
+        retry_connect(e, "Timeout error occurs.")
+      rescue SystemCallError => e
+        retry_connect(e, "System call error occurs.")
+      rescue StandardError=> e
+        retry_connect(e, "The other error occurs.")
+      end
+      @client.disconnect if @client.connected?
+      exit
+    end
+
+    def connect
+      rescue_disconnection do
+        @client.connect
+        @client.subscribe(@topic)
+        init_retry_interval
+        thread_create(:in_mqtt_connect) do
+          rescue_disconnection do
             @client.get do |topic, message|
               emit(topic, message)
             end
           end
-          init_retry_interval
-          sleep
-        rescue MQTT::ProtocolException => e
-          sleep_retry_interval(e, "Protocol error occurs.")
-          next
-        rescue Timeout::Error => e
-          sleep_retry_interval(e, "Timeout error occurs.")
-          next
-        rescue SystemCallError => e
-          sleep_retry_interval(e, "System call error occurs.")
-          next
-        rescue StandardError=> e
-          sleep_retry_interval(e, "The other error occurs.")
-          next
         end
       end
     end

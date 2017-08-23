@@ -217,8 +217,12 @@ module Fluent::Plugin
 
     def write(chunk)
       return if chunk.empty?
+      p chunk
       tag = chunk.metadata.tag
-
+      es = Fluent::MultiEventStream.new
+      chunk.each do |time, record|
+        es.add(time, record)
+      end
       publish_event_stream(tag, es)
     end
   end
