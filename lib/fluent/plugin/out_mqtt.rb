@@ -60,6 +60,13 @@ module Fluent::Plugin
       super
     end
 
+    def after_connection
+      @dummy_thread = thread_create(:out_mqtt_dummy) do
+        Thread.stop
+      end
+      @dummy_thread
+    end
+
     def current_plugin_name
       :out_mqtt
     end

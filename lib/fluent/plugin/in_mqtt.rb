@@ -9,7 +9,7 @@ module Fluent::Plugin
 
     Fluent::Plugin.register_input('mqtt', self)
 
-    helpers :thread, :compat_parameters, :parser
+    helpers :compat_parameters, :parser
 
     desc 'The topic to subscribe.'
     config_param :topic, :string, default: '#'
@@ -59,14 +59,13 @@ module Fluent::Plugin
     def after_connection
       if @client.connected?
         @client.subscribe(@topic)
-        thread_create(:in_mqtt_get) do
-          rescue_disconnection do
-            @client.get do |topic, message|
-              emit(topic, message)
-            end
+        @get_thread = thread_create(:in_mqtt_get) do
+          @client.get do |topic, message|
+            emit(topic, message)
           end
         end
       end
+      @get_thread
     end
 
     def add_recv_time(record)

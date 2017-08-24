@@ -4,7 +4,7 @@ module Fluent::Plugin
     MQTT_PORT = 1883
 
     def self.included(base)
-      base.helpers :timer
+      base.helpers :timer, :thread
 
       base.desc 'The address to connect to.'
       base.config_param :host, :string, default: '127.0.0.1'
@@ -63,7 +63,6 @@ module Fluent::Plugin
       end
 
       init_retry_interval
-      @client_mutex = Mutex.new
       @client = MQTT::Client.new(opts)
       connect
     end
@@ -113,17 +112,20 @@ module Fluent::Plugin
 
     def after_connection
       # should be implemented
+      # returns thread instance for monitor thread to wait
+      # for Exception raised by MQTT I/O
     end
 
     def connect
-      @client_mutex.lock
-      rescue_disconnection do
-        @client.connect
-        log.debug "connected to mqtt broker #{@host}:#{@port} for #{current_plugin_name}"
-        init_retry_interval
+      thread_create("#{current_plugin_name}_monitor".to_sym) do
+        rescue_disconnection do
+          @client.connect
+          log.debug "connected to mqtt broker #{@host}:#{@port} for #{current_plugin_name}"
+          init_retry_interval
+          thread = after_connection
+          thread.join
+        end
       end
-      @client_mutex.unlock
-      after_connection
     end
   end
 end
