@@ -67,8 +67,8 @@ The default MQTT topic is "#". Configurable options are the following:
   - In order to use xml format, you need to install [fluent-plugin-xml-parser](https://github.com/toyokazu/fluent-plugin-xml-parser).
   - Default time_key field for json format is 'time'
 - **topic**: Topic name to be subscribed
-- **bulk_trans**: Enable bulk transfer to support buffered output (mqtt_buf, Fluent::MqttBufferedOutput, defaut: true)
-- **bulk_trans_sep**: A message separator for bulk transfer. The default separator is "\t".
+- **bulk_trans**: Enable bulk transfer to support buffered output (mqtt_buf, Fluent::MqttBufferedOutput, defaut: true) only for fluent-plugin-mqtt-io <= 0.2.3
+- **bulk_trans_sep**: A message separator for bulk transfer. The default separator is "\t". only for fluent-plugin-mqtt-io <= 0.2.3
 - **username**: User name for authentication
 - **password**: Password for authentication
 - **keep_alive**: An interval of sending keep alive packet (default 15 sec)
@@ -80,6 +80,7 @@ The default MQTT topic is "#". Configurable options are the following:
 - **recv_time_key**: An attribute of recv_time
 - **initial_interval**: An initial value of retry interval (s) (default 1)
 - **retry_inc_ratio**: An increase ratio of retry interval per connection failure (default 2 (double)). It may be better to set the value to 1 in a mobile environment for eager reconnection.
+- **max_retry_interval**: Maximum value of retry interval (default 300) only for fluent-plugin-mqtt-io ~> 0.3.0
 
 Input Plugin supports @label directive.
 
@@ -151,6 +152,10 @@ For fluent-plugin-mqtt-io ~> v0.3.0
   @type mqtt
   host 127.0.0.1
   port 1883
+  <format>
+    @type json
+    add_newline false
+  </format>
   topic_rewrite_pattern '^([\w\/]+)$'
   topic_rewrite_replacement '\1/rewritten'
 </match>
@@ -182,6 +187,9 @@ For fluent-plugin-mqtt-io ~> v0.3.0
   @type mqtt
   host 127.0.0.1
   port 1883
+  <format>
+    @type json
+  </format>
   topic_rewrite_pattern '^([\w\/]+)$'
   topic_rewrite_replacement '\1/rewritten'
   # You can specify Buffer Plugin options
