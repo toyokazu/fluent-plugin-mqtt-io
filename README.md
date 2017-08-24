@@ -51,7 +51,9 @@ For fluent-plugin-mqtt-io ~> v0.3.0
   @type mqtt
   host 127.0.0.1
   port 1883
-  format json
+  <parse>
+    @type json
+  </parse>
 </source>
 
 ```
@@ -105,6 +107,10 @@ For fluent-plugin-mqtt-io ~> v0.3.0
   @type mqtt
   host 127.0.0.1
   port 1883
+  <format>
+    @type json
+    add_newline false
+  </format>
 </match>
 
 ```
