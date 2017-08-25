@@ -108,6 +108,7 @@ module Fluent::Plugin
     end
 
     def format(tag, time, record)
+      record = inject_values_to_record(tag, time, record)
       [tag, time, record].to_msgpack
     end
 
