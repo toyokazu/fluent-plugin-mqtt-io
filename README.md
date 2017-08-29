@@ -76,8 +76,13 @@ The default MQTT topic is "#". Configurable options are the following:
   - **ca_file**: CA certificate file path
   - **key_file**: private key file path
   - **cert_file**: certificate file path
-- **recv_time**: Add receive time to message in millisecond (ms) as integer for debug and performance/delay analysis
-- **recv_time_key**: An attribute of recv_time
+- **recv_time**: Add receive time to message in millisecond (ms) as integer for debug and performance/delay analysis. only for fluent-plugin-mqtt-io <= 0.2.3
+- **recv_time_key**: An attribute of recv_time. only for fluent-plugin-mqtt-io <= 0.2.3
+- **monitor**: monitor section. only for fluent-plugin-mqtt-io ~> 0.3.0
+  - **recv_time**: Add receive time to message in millisecond (ms) as integer for debug and performance/delay analysis (default: false). only for fluent-plugin-mqtt-io ~> 0.3.0
+  - **recv_time_key**: An attribute of recv_time (default: "recv_time"). only for fluent-plugin-mqtt-io ~> 0.3.0
+  - **time_type**: Type of time format (string, unixtime, float)
+  - **time_format**: Time format e.g. %FT%T.%N%:z (refer strftime)
 - **initial_interval**: An initial value of retry interval (s) (default 1)
 - **retry_inc_ratio**: An increase ratio of retry interval per connection failure (default 2 (double)). It may be better to set the value to 1 in a mobile environment for eager reconnection.
 - **max_retry_interval**: Maximum value of retry interval (default 300) only for fluent-plugin-mqtt-io ~> 0.3.0
@@ -118,13 +123,18 @@ For fluent-plugin-mqtt-io ~> v0.3.0
 
 The options are basically the same as Input Plugin except for "format" and "bulk_trans" (only for Input). Additional options for Output Plugin are the following.
 
-- time_key: An attribute name used for timestamp field genarated from fluentd time field. Default is nil (omitted).
+- **time_key**: An attribute name used for timestamp field genarated from fluentd time field. Default is nil (omitted).
   If this option is omitted, timestamp field is not appended to the output record.
-- time_format: Output format of timestamp field. Default is ISO8601. You can specify your own format by using TimeParser.
-- topic_rewrite_pattern: Regexp pattern to extract replacement words from received topic or tag name
-- topic_rewrite_replacement: Topic name used for the publish using extracted pattern
-- send_time: Add send time to message in millisecond (ms) as integer for debug and performance/delay analysis
-- send_time_key: An attribute of recv_time
+- **time_format**: Output format of timestamp field. Default is ISO8601. You can specify your own format by using TimeParser.
+- **topic_rewrite_pattern**: Regexp pattern to extract replacement words from received topic or tag name
+- **topic_rewrite_replacement**: Topic name used for the publish using extracted pattern
+- **send_time**: Add send time to message in millisecond (ms) as integer for debug and performance/delay analysis. only for fluent-plugin-mqtt-io <= 0.2.3
+- **send_time_key**: An attribute of send_time. only for fluent-plugin-mqtt-io <= 0.2.3
+- **monitor**: monitor section. only for fluent-plugin-mqtt-io ~> 0.3.0
+  - **send_time**: Add send time to message in millisecond (ms) as integer for debug and performance/delay analysis. only for fluent-plugin-mqtt-io ~> 0.3.0
+  - **send_time_key**: An attribute of send_time. only for fluent-plugin-mqtt-io ~> 0.3.0
+  - **time_type**: Type of time format (string, unixtime, float)
+  - **time_format**: Time format e.g. %FT%T.%N%:z (refer strftime)
 
 If you use different source, e.g. the other MQTT broker, log file and so on, there is no need to specifie topic rewriting. Skip the following descriptions.
 

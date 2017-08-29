@@ -6,6 +6,7 @@ require 'fluent/plugin/mqtt_proxy'
 module Fluent::Plugin
   class MqttOutput < Output
     include MqttProxy
+    include Fluent::TimeMixin::Formatter
 
     Fluent::Plugin.register_output('mqtt', self)
 
@@ -21,6 +22,10 @@ module Fluent::Plugin
       config_param :send_time, :bool, default: false
       desc 'Recording key name of send time for monitoring.'
       config_param :send_time_key, :string, default: "send_time"
+      desc 'Specify time type of send_time (string, unixtime, float).'
+      config_param :time_type, :string, default: 'string'
+      desc 'Specify time format of send_time (e.g. %FT%T.%N%:z).'
+      config_param :time_format, :string, default: nil
     end
 
     # This method is called before starting.
@@ -32,6 +37,11 @@ module Fluent::Plugin
       formatter_config = conf.elements(name: 'format').first
       @formatter = formatter_create(conf: formatter_config)
       @has_buffer_section = conf.elements(name: 'buffer').size > 0
+      if !@monitor.nil?
+        @send_time_formatter = time_formatter_create(
+          type: @monitor.time_type.to_sym, format: @monitor.time_format
+        )
+      end
     end
 
     def rewrite_tag(tag)
@@ -72,9 +82,9 @@ module Fluent::Plugin
     end
 
     def add_send_time(record)
-      if @send_time
+      if !@monitor.nil? && @monitor.send_time
         # send_time is recorded in ms
-        record.merge({"#{@send_time_key}": Fluent::EventTime.now})
+        record.merge({"#{@monitor.send_time_key}": @send_time_formatter.format(Fluent::EventTime.now)})
       else
         record
       end

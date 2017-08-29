@@ -6,6 +6,7 @@ require 'fluent/plugin/mqtt_proxy'
 module Fluent::Plugin
   class MqttInput < Input
     include MqttProxy
+    include Fluent::TimeMixin::Formatter
 
     Fluent::Plugin.register_input('mqtt', self)
 
@@ -25,12 +26,21 @@ module Fluent::Plugin
       desc 'Record received time into message or not.'
       config_param :recv_time, :bool, default: false
       desc 'Specify the attribute name of received time.'
-      config_param :recv_time_key, :string, default: "recv_time"
+      config_param :recv_time_key, :string, default: 'recv_time'
+      desc 'Specify time type of recv_time (string, unixtime, float).'
+      config_param :time_type, :string, default: 'string'
+      desc 'Specify time format of recv_time (e.g. %FT%T.%N%:z).'
+      config_param :time_format, :string, default: nil
     end
 
     def configure(conf)
       super
       configure_parser(conf)
+      if !@monitor.nil?
+        @recv_time_formatter = time_formatter_create(
+          type: @monitor.time_type.to_sym, format: @monitor.time_format
+        )
+      end
     end
 
     def configure_parser(conf)
@@ -69,9 +79,9 @@ module Fluent::Plugin
     end
 
     def add_recv_time(record)
-      if @recv_time
+      if !@monitor.nil? && @monitor.recv_time
         # recv_time is recorded in ms
-        record.merge({"#{@recv_time_key}": Fluent::EventTime.now})
+        record.merge({"#{@monitor.recv_time_key}": @recv_time_formatter.format(Fluent::EventTime.now)})
       else
         record
       end
