@@ -81,8 +81,8 @@ The default MQTT topic is "#". Configurable options are the following:
 - **monitor**: monitor section. only for fluent-plugin-mqtt-io ~> 0.3.0
   - **recv_time**: Add receive time to message in millisecond (ms) as integer for debug and performance/delay analysis (default: false). only for fluent-plugin-mqtt-io ~> 0.3.0
   - **recv_time_key**: An attribute of recv_time (default: "recv_time"). only for fluent-plugin-mqtt-io ~> 0.3.0
-  - **time_type**: Type of time format (string, unixtime, float)
-  - **time_format**: Time format e.g. %FT%T.%N%:z (refer strftime)
+  - **time_type**: Type of time format (string (default), unixtime, float) only for fluent-plugin-mqtt-io ~> 0.3.0
+  - **time_format**: Time format e.g. %FT%T.%N%:z (refer strftime) only for fluent-plugin-mqtt-io ~> 0.3.0
 - **initial_interval**: An initial value of retry interval (s) (default 1)
 - **retry_inc_ratio**: An increase ratio of retry interval per connection failure (default 2 (double)). It may be better to set the value to 1 in a mobile environment for eager reconnection.
 - **max_retry_interval**: Maximum value of retry interval (default 300) only for fluent-plugin-mqtt-io ~> 0.3.0
@@ -133,8 +133,8 @@ The options are basically the same as Input Plugin except for "format" and "bulk
 - **monitor**: monitor section. only for fluent-plugin-mqtt-io ~> 0.3.0
   - **send_time**: Add send time to message in millisecond (ms) as integer for debug and performance/delay analysis. only for fluent-plugin-mqtt-io ~> 0.3.0
   - **send_time_key**: An attribute of send_time. only for fluent-plugin-mqtt-io ~> 0.3.0
-  - **time_type**: Type of time format (string, unixtime, float)
-  - **time_format**: Time format e.g. %FT%T.%N%:z (refer strftime)
+  - **time_type**: Type of time format (string (default), unixtime, float) only for fluent-plugin-mqtt-io ~> 0.3.0
+  - **time_format**: Time format e.g. %FT%T.%N%:z (refer strftime) only for fluent-plugin-mqtt-io ~> 0.3.0
 
 If you use different source, e.g. the other MQTT broker, log file and so on, there is no need to specifie topic rewriting. Skip the following descriptions.
 
