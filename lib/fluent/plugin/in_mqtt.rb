@@ -93,7 +93,7 @@ module Fluent::Plugin
           log.debug "Since time_key field is nil, Fluent::EventTime.now is used."
           time = Fluent::EventTime.now
         end
-        return [time, add_recv_time(record)]
+        return [time, record]
       end
     end
 
@@ -101,15 +101,16 @@ module Fluent::Plugin
       begin
         tag = topic.gsub("/","\.")
         time, record = parse(message)
-        log.debug "MqttInput#emit: #{tag}, #{time}, #{add_recv_time(record)}"
         if record.is_a?(Array)
           mes = Fluent::MultiEventStream.new
           record.each do |single_record|
-            mes.add(@parser.parse_time(single_record), single_record)
+            log.debug "MqttInput#emit: #{tag}, #{time}, #{add_recv_time(single_record)}"
+            mes.add(@parser.parse_time(single_record), add_recv_time(single_record))
           end
           router.emit_stream(tag, mes)
         else
-          router.emit(tag, time, record)
+          log.debug "MqttInput#emit: #{tag}, #{time}, #{add_recv_time(record)}"
+          router.emit(tag, time, add_recv_time(record))
         end
       rescue Exception => e
         log.error error: e.to_s
