@@ -1,11 +1,11 @@
 # Fluent::Plugin::Mqtt::IO
 
-Fluent plugin for MQTT Input/Output
+Fluent plugin for MQTT Input/Output.
 Mqtt::IO Plugin is deeply inspired by Fluent::Plugin::Mqtt.
 
 https://github.com/yuuna/fluent-plugin-mqtt
 
-Mqtt::IO plugin focus on federating components, e.g. sensors, messaging platform and databases. Encryption/Decription is not supported in this plugin but [fluent-plugin-jwt-filter](https://github.com/toyokazu/fluent-plugin-jwt-filter) can be used to encrypt/decrypt messages using JSON Web Token technology.
+Mqtt::IO plugin focus on federating components, e.g. sensors, messaging platform and databases. Encryption/Decryption is not supported in this plugin but [fluent-plugin-jwt-filter](https://github.com/toyokazu/fluent-plugin-jwt-filter) can be used to encrypt/decrypt messages using JSON Web Token technology.
 
 ## Installation
 
