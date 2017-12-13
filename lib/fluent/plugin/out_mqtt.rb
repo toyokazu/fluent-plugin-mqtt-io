@@ -17,6 +17,13 @@ module Fluent::Plugin
     desc 'Topic rewrite replacement string.'
     config_param :topic_rewrite_replacement, :string, default: nil
 
+    config_section :format do
+      desc 'The format to publish'
+      config_param :@type, :string, default: 'single_value'
+      desc 'Add newline'
+      config_param :add_newline, :bool, default: false
+    end
+
     config_section :monitor, required: false, multi: false do
       desc 'Recording send time for monitoring.'
       config_param :send_time, :bool, default: false

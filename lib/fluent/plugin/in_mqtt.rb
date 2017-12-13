@@ -14,8 +14,11 @@ module Fluent::Plugin
 
     desc 'The topic to subscribe.'
     config_param :topic, :string, default: '#'
-    desc 'The format to receive.'
-    config_param :format, :string, default: 'json'
+
+    config_section :parse do
+      desc 'The format to receive.'
+      config_param :@type, :string, default: 'none'
+    end
 
     # bulk_trans is deprecated
     # multiple entries must be inputted as an Array
