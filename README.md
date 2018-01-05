@@ -124,6 +124,7 @@ For fluent-plugin-mqtt-io ~> v0.3.0
 
 The options are basically the same as Input Plugin except for "format" and "bulk_trans" (only for Input). Additional options for Output Plugin are the following.
 
+- **raises_write_error**: If set true, raises exception without reconnect when it had some error while publishing. Default is false.
 - **time_key**: An attribute name used for timestamp field genarated from fluentd time field. Default is nil (omitted).
   If this option is omitted, timestamp field is not appended to the output record.
 - **time_format**: Output format of timestamp field. Default is ISO8601. You can specify your own format by using TimeParser.
