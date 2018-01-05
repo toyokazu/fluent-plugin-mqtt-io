@@ -10,6 +10,8 @@ module Fluent::Plugin
       base.config_param :host, :string, default: '127.0.0.1'
       base.desc 'The port to connect to.'
       base.config_param :port, :integer, default: MQTT_PORT
+      base.desc 'Client ID of MQTT Connection'
+      base.config_param :client_id, :string, default: nil
       base.desc 'Specify keep alive interval.'
       base.config_param :keep_alive, :integer, default: 15
       base.desc 'Specify initial connection retry interval.'
@@ -51,6 +53,7 @@ module Fluent::Plugin
       opts = {
         host: @host,
         port: @port,
+        client_id: @client_id,
         keep_alive: @keep_alive
       }
       opts[:username] = @security.username if @security.to_h.has_key?(:username)

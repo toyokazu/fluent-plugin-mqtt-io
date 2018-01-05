@@ -20,6 +20,7 @@ class MqttOutputTest < Test::Unit::TestCase
       d = create_driver %[
         host 127.0.0.1
         port 1300
+        client_id aa-bb-cc-dd
         <format>
           @type json
         </format>
@@ -38,6 +39,7 @@ class MqttOutputTest < Test::Unit::TestCase
       assert_equal '127.0.0.1', d.instance.host
       assert_equal 1300, d.instance.port
       assert_equal true, d.instance.monitor.send_time
+      assert_equal 'aa-bb-cc-dd', d.instance.client_id
 
       assert_equal true, d.instance.security.use_tls
       assert_equal '/cert/cacert.pem', d.instance.security.tls.ca_file
