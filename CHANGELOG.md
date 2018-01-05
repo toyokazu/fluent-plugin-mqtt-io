@@ -1,3 +1,8 @@
+## 0.4.0 (2018-01-05)
+Features:
+  - change fluentd dependency from ~> 0.14 to >= 0.14
+
+
 ## 0.3.0 (2017-03-20)
 
 Features:
