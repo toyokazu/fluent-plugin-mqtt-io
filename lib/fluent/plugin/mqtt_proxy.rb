@@ -21,19 +21,19 @@ module Fluent::Plugin
 
       base.config_section :security, required: false, multi: false do
         ### User based authentication
-        base.desc 'The username for authentication'
-        base.config_param :username, :string, default: nil
-        base.desc 'The password for authentication'
-        base.config_param :password, :string, default: nil
-        base.desc 'Use TLS or not.'
-        base.config_param :use_tls, :bool, default: nil
-        base.config_section :tls, required: false, multi: true do
-          base.desc 'Specify TLS ca file.'
-          base.config_param :ca_file, :string, default: nil
-          base.desc 'Specify TLS key file.'
-          base.config_param :key_file, :string, default: nil
-          base.desc 'Specify TLS cert file.'
-          base.config_param :cert_file, :string, default: nil
+        desc 'The username for authentication'
+        config_param :username, :string, default: nil
+        desc 'The password for authentication'
+        config_param :password, :string, default: nil
+        desc 'Use TLS or not.'
+        config_param :use_tls, :bool, default: nil
+        config_section :tls, required: false, multi: false do
+          desc 'Specify TLS ca file.'
+          config_param :ca_file, :string, default: nil
+          desc 'Specify TLS key file.'
+          config_param :key_file, :string, default: nil
+          desc 'Specify TLS cert file.'
+          config_param :cert_file, :string, default: nil
         end
       end
     end
@@ -53,9 +53,9 @@ module Fluent::Plugin
         port: @port,
         keep_alive: @keep_alive
       }
-      opts[:username] = @security.username if @security.respond_to?(:username)
-      opts[:password] = @security.password if @security.respond_to?(:password)
-      if @security.respond_to?(:use_tls) && @security.use_tls
+      opts[:username] = @security.username if @security.to_h.has_key?(:username)
+      opts[:password] = @security.password if @security.to_h.has_key?(:password)
+      if @security.to_h.has_key?(:use_tls) && @security.use_tls
         opts[:ssl] = @security.use_tls
         opts[:ca_file] = @security.tls.ca_file
         opts[:cert_file] = @security.tls.cert_file

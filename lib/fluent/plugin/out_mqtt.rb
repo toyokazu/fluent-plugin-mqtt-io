@@ -12,6 +12,7 @@ module Fluent::Plugin
 
     helpers :compat_parameters, :formatter, :inject
 
+
     desc 'Topic rewrite matching pattern.'
     config_param :topic_rewrite_pattern, :string, default: nil
     desc 'Topic rewrite replacement string.'
