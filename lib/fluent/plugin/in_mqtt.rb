@@ -55,6 +55,14 @@ module Fluent::Plugin
     def start
       super
       start_proxy
+      if @client.connected?
+        @client.subscribe(@topic)
+        thread_create(:in_mqtt) do
+          @client.get do |topic, message|
+            emit(topic, message)
+          end
+        end
+      end
     end
 
     def shutdown
@@ -64,21 +72,6 @@ module Fluent::Plugin
 
     def current_plugin_name
       :in_mqtt
-    end
-
-    def after_disconnection
-    end
-
-    def after_connection
-      if @client.connected?
-        @client.subscribe(@topic)
-        @get_thread = thread_create(:in_mqtt_get) do
-          @client.get do |topic, message|
-            emit(topic, message)
-          end
-        end
-      end
-      @get_thread
     end
 
     def add_recv_time(record)

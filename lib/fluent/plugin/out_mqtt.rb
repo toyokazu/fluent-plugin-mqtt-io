@@ -18,6 +18,11 @@ module Fluent::Plugin
     desc 'Topic rewrite replacement string.'
     config_param :topic_rewrite_replacement, :string, default: nil
 
+    desc 'Retain option which publishing'
+    config_param :retain, :bool, default: false
+    desc 'QoS option which publishing'
+    config_param :qos, :integer, default: 1
+
     config_section :format do
       desc 'The format to publish'
       config_param :@type, :string, default: 'single_value'
@@ -78,13 +83,6 @@ module Fluent::Plugin
       super
     end
 
-    def after_connection
-      @dummy_thread = thread_create(:out_mqtt_dummy) do
-        Thread.stop
-      end
-      @dummy_thread
-    end
-
     def current_plugin_name
       :out_mqtt
     end
@@ -102,21 +100,15 @@ module Fluent::Plugin
       if es.class == Fluent::OneEventStream
         es = inject_values_to_event_stream(tag, es)
         es.each do |time, record|
-          log.debug "MqttOutput#publish_event_stream: #{rewrite_tag(tag)}, #{time}, #{add_send_time(record)}"
-          rescue_disconnection do
-            @client.publish(rewrite_tag(tag), @formatter.format(tag, time, add_send_time(record)))
-          end
+          publish(tag, time, record)
         end
       else
         es = inject_values_to_event_stream(tag, es)
         array = []
         es.each do |time, record|
-          log.debug "MqttOutput#publish_event_stream: #{rewrite_tag(tag)}, #{time}, #{add_send_time(record)}"
           array << add_send_time(record)
         end
-        rescue_disconnection do
-          @client.publish(rewrite_tag(tag), @formatter.format(tag, Fluent::EventTime.now, array))
-        end
+        publish(tag, time, record)
       end
       log.flush
     end
@@ -134,13 +126,20 @@ module Fluent::Plugin
       true
     end
 
+    def publish(tag, time, record)
+      log.debug "MqttOutput::#{caller_locations(1,1)[0].label}: #{rewrite_tag(rewrite_tag(tag))}, #{time}, #{add_send_time(record)}"
+      @client.publish(
+        rewrite_tag(tag),
+        @formatter.format(tag, time, add_send_time(record)),
+        @retain,
+        @qos
+      )
+    end
+
     def write(chunk)
       return if chunk.empty?
       chunk.each do |tag, time, record|
-        rescue_disconnection do
-          log.debug "MqttOutput#write: #{rewrite_tag(rewrite_tag(tag))}, #{time}, #{add_send_time(record)}"
-          @client.publish(rewrite_tag(tag), @formatter.format(tag, time, add_send_time(record)))
-        end
+        publish(tag, time, record)
       end
     end
   end

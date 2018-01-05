@@ -21,10 +21,9 @@ class MqttInputTest < Test::Unit::TestCase
           host 127.0.0.1
           port 1300
           client_id aa-bb-cc-dd
-          <parse>
-            @type json
-            time_format %FT%T%:z
-          </parse>
+          <monitor>
+            recv_time true
+          </monitor>
           <security>
             use_tls true
             <tls>
@@ -38,6 +37,10 @@ class MqttInputTest < Test::Unit::TestCase
       assert_equal '127.0.0.1', d.instance.host
       assert_equal 1300, d.instance.port
       assert_equal 'aa-bb-cc-dd', d.instance.client_id
+      
+      assert_equal 'none', d.instance.parser_configs.first[:@type]
+
+      assert_equal true, d.instance.monitor.recv_time
 
       assert_equal true, d.instance.security.use_tls
       assert_equal '/cert/cacert.pem', d.instance.security.tls.ca_file
