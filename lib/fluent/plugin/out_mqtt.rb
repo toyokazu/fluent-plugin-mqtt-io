@@ -18,6 +18,10 @@ module Fluent::Plugin
     desc 'Topic rewrite replacement string.'
     config_param :topic_rewrite_replacement, :string, default: nil
 
+    # parameterize raises_write_error to delegate write error to buffer mechanism
+    desc 'Raises exception without reconnect if set true'
+    config_param :raises_write_error, :bool, default: false
+
     config_section :format do
       desc 'The format to publish'
       config_param :@type, :string, default: 'single_value'
@@ -134,12 +138,23 @@ module Fluent::Plugin
       true
     end
 
+    def publish(tag, time, record)
+      log.debug "MqttOutput#write: #{rewrite_tag(rewrite_tag(tag))}, #{time}, #{add_send_time(record)}"
+      @client.publish(
+        rewrite_tag(tag),
+        @formatter.format(tag, time, add_send_time(record))
+      )
+    end
+
     def write(chunk)
       return if chunk.empty?
       chunk.each do |tag, time, record|
-        rescue_disconnection do
-          log.debug "MqttOutput#write: #{rewrite_tag(rewrite_tag(tag))}, #{time}, #{add_send_time(record)}"
-          @client.publish(rewrite_tag(tag), @formatter.format(tag, time, add_send_time(record)))
+        if @raises_write_error
+          publish(tag, time, record)
+        else
+          rescue_disconnection do
+            publish(tag, time, record)
+          end
         end
       end
     end
