@@ -18,6 +18,11 @@ module Fluent::Plugin
     desc 'Topic rewrite replacement string.'
     config_param :topic_rewrite_replacement, :string, default: nil
 
+    desc 'Retain option which publishing'
+    config_param :retain, :bool, default: false
+    desc 'QoS option which publishing'
+    config_param :qos, :integer, default: 1
+
     config_section :format do
       desc 'The format to publish'
       config_param :@type, :string, default: 'single_value'
@@ -139,7 +144,12 @@ module Fluent::Plugin
       chunk.each do |tag, time, record|
         rescue_disconnection do
           log.debug "MqttOutput#write: #{rewrite_tag(rewrite_tag(tag))}, #{time}, #{add_send_time(record)}"
-          @client.publish(rewrite_tag(tag), @formatter.format(tag, time, add_send_time(record)))
+          @client.publish(
+            rewrite_tag(tag),
+            @formatter.format(tag, time, add_send_time(record)),
+            @retain,
+            @qos
+          )
         end
       end
     end

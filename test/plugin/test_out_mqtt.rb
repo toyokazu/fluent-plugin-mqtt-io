@@ -21,6 +21,8 @@ class MqttOutputTest < Test::Unit::TestCase
         host 127.0.0.1
         port 1300
         client_id aa-bb-cc-dd
+        retain true
+        qos 2
         <format>
           @type json
         </format>
@@ -39,6 +41,8 @@ class MqttOutputTest < Test::Unit::TestCase
       assert_equal '127.0.0.1', d.instance.host
       assert_equal 1300, d.instance.port
       assert_equal true, d.instance.monitor.send_time
+      assert_equal true, d.instance.retain
+      assert_equal 2, d.instance.qos
       assert_equal 'aa-bb-cc-dd', d.instance.client_id
 
       assert_equal true, d.instance.security.use_tls
