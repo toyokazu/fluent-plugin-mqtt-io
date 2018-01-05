@@ -63,6 +63,7 @@ The default MQTT topic is "#". Configurable options are the following:
 
 - **host**: IP address of MQTT broker
 - **port**: Port number of MQTT broker
+- **client_id**: Client ID that to connect to MQTT broker
 - **format** (mandatory): Input parser can be chosen, e.g. json, xml
   - In order to use xml format, you need to install [fluent-plugin-xml-parser](https://github.com/toyokazu/fluent-plugin-xml-parser).
   - Default time_key field for json format is 'time'
