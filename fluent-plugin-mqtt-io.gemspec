@@ -4,7 +4,7 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 
 Gem::Specification.new do |spec|
   spec.name          = "fluent-plugin-mqtt-io"
-  spec.version       = "0.3.9"
+  spec.version       = "0.4.0"
   spec.authors       = ["Toyokazu Akiyama"]
   spec.email         = ["toyokazu@gmail.com"]
 
@@ -21,7 +21,7 @@ Gem::Specification.new do |spec|
 
   spec.required_ruby_version = '>= 2.2.0'
 
-  spec.add_dependency 'fluentd', '~> 0.14'
+  spec.add_dependency 'fluentd', [">= 0.14.0", "< 2"]
   spec.add_dependency "mqtt", "~> 0.5"
 
   spec.add_development_dependency "bundler", "~> 1.14"
