@@ -110,6 +110,8 @@ module Fluent::Plugin
         retry_connect(e, "System call error occurs.")
       rescue StandardError=> e
         retry_connect(e, "The other error occurs.")
+      rescue MQTT::NotConnectedException=> e
+        retry_connect(e, "MQTT not connected exception occurs.")
       end
     end
 
