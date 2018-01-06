@@ -41,6 +41,11 @@ module Fluent::Plugin
       config_param :time_format, :string, default: nil
     end
 
+    config_section :buffer, required: false, multi: false do
+      desc 'Prefer asynchronous buffering'
+      config_param :async, :bool, default: false
+    end
+
     # This method is called before starting.
     # 'conf' is a Hash that includes configuration parameters.
     # If the configuration is invalid, raise Fluent::ConfigError.
@@ -69,6 +74,10 @@ module Fluent::Plugin
       @has_buffer_section
     end
 
+    def prefer_delayed_commit
+      @has_buffer_section && @buffer_config.async
+    end
+
     # This method is called when starting.
     # Open sockets or files here.
     def start
@@ -80,14 +89,25 @@ module Fluent::Plugin
     # Shutdown the thread and close sockets or files here.
     def shutdown
       shutdown_proxy
+      kill_thread
       super
     end
 
+    def kill_thread
+      @dummy_thread.kill if !@dummy_thread.nil?
+    end
+
     def after_connection
-      @dummy_thread = thread_create(:out_mqtt_dummy) do
+      #@dummy_thread = thread_create(:out_mqtt_dummy) do
+      @dummy_thread = Thread.new do
         Thread.stop
       end
       @dummy_thread
+    end
+
+    def after_disconnection
+      kill_thread
+      super
     end
 
     def current_plugin_name
@@ -104,22 +124,11 @@ module Fluent::Plugin
     end
 
     def publish_event_stream(tag, es)
-      if es.class == Fluent::OneEventStream
-        es = inject_values_to_event_stream(tag, es)
-        es.each do |time, record|
-          rescue_disconnection do
-            publish(tag, time, record)
-          end
-        end
-      else
-        es = inject_values_to_event_stream(tag, es)
-        array = []
-        es.each do |time, record|
-          log.debug "MqttOutput#publish_event_stream: #{rewrite_tag(tag)}, #{time}, #{add_send_time(record)}"
-          array << add_send_time(record)
-        end
+      log.debug "publish_event_stream: #{es.class}"
+      es = inject_values_to_event_stream(tag, es)
+      es.each do |time, record|
         rescue_disconnection do
-          @client.publish(rewrite_tag(tag), @formatter.format(tag, Fluent::EventTime.now, array))
+          publish(tag, time, record)
         end
       end
       log.flush
@@ -148,13 +157,22 @@ module Fluent::Plugin
       )
     end
 
-
     def write(chunk)
       return if chunk.empty?
       chunk.each do |tag, time, record|
         rescue_disconnection do
           publish(tag, time, record)
         end
+      end
+    end
+
+    def try_write(chunk)
+      return if chunk.empty?
+      rescue_disconnection do
+        chunk.each do |tag, time, record|
+          publish(tag, time, record)
+        end
+        commit_write(chunk.unique_id)
       end
     end
   end

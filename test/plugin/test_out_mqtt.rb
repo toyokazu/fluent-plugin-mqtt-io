@@ -23,6 +23,9 @@ class MqttOutputTest < Test::Unit::TestCase
         client_id aa-bb-cc-dd
         retain true
         qos 2
+        <buffer>
+          async true
+        </buffer>
         <monitor>
           send_time true
         </monitor>
@@ -40,6 +43,8 @@ class MqttOutputTest < Test::Unit::TestCase
       assert_equal 'aa-bb-cc-dd', d.instance.client_id
       assert_equal true, d.instance.retain
       assert_equal 2, d.instance.qos
+
+      assert_equal true, d.instance.buffer_config.async
 
       assert_equal true, d.instance.monitor.send_time
 

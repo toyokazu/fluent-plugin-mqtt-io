@@ -92,13 +92,18 @@ module Fluent::Plugin
       @client.disconnect if @client.connected?
     end
 
-    def after_disconnection
-      # should be implemented
+    def kill_connect_thread
+      @connect_thread.kill if !@connect_thread.nil?
     end
 
-    def rescue_disconnection(*block)
+    def after_disconnection
+      # should be implemented
+      kill_connect_thread
+    end
+
+    def rescue_disconnection
       begin
-        yield *block
+        yield
       rescue MQTT::ProtocolException => e
         # TODO:
         # Currently MQTT::ProtocolException cannot be caught during @client.get
@@ -111,7 +116,11 @@ module Fluent::Plugin
       rescue StandardError=> e
         retry_connect(e, "The other error occurs.")
       rescue MQTT::NotConnectedException=> e
-        retry_connect(e, "MQTT not connected exception occurs.")
+        # Since MQTT::NotConnectedException is raised only on publish,
+        # connection error should be catched before this error.
+        # So, reconnection process is omitted for this Exception
+        # to prevent waistful increment of retry interval.
+        log.error "MQTT not connected exception occurs.,#{e.class},#{e.message}"
       end
     end
 
@@ -122,7 +131,8 @@ module Fluent::Plugin
     end
 
     def connect
-      thread_create("#{current_plugin_name}_monitor".to_sym) do
+      #@connect_thread = thread_create("#{current_plugin_name}_monitor".to_sym) do
+      @connect_thread = Thread.new do
         rescue_disconnection do
           @client.connect
           log.debug "connected to mqtt broker #{@host}:#{@port} for #{current_plugin_name}"

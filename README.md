@@ -99,6 +99,8 @@ The options are basically the same as Input Plugin except for "parser (for Input
   - **send_time_key**: An attribute of send_time. only for fluent-plugin-mqtt-io
   - **time_type**: Type of time format (string (default), unixtime, float) only for fluent-plugin-mqtt-io
   - **time_format**: Time format e.g. %FT%T.%N%:z (refer strftime) only for fluent-plugin-mqtt-io
+- **buffer**: synchronous/asynchronous buffer is supported. Refer ![Buffer section configurations](https://docs.fluentd.org/v1.0/articles/buffer-section) for detailed configuration.
+  - **async**: Enable asynchronous buffer transfer. Default is false.
 
 If you use different source, e.g. the other MQTT broker, log file and so on, there is no need to specifie topic rewriting. Skip the following descriptions.
 
