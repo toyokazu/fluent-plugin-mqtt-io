@@ -23,9 +23,6 @@ class MqttOutputTest < Test::Unit::TestCase
         client_id aa-bb-cc-dd
         retain true
         qos 2
-        <format>
-          @type json
-        </format>
         <monitor>
           send_time true
         </monitor>
@@ -40,10 +37,13 @@ class MqttOutputTest < Test::Unit::TestCase
       ]
       assert_equal '127.0.0.1', d.instance.host
       assert_equal 1300, d.instance.port
-      assert_equal true, d.instance.monitor.send_time
+      assert_equal 'aa-bb-cc-dd', d.instance.client_id
       assert_equal true, d.instance.retain
       assert_equal 2, d.instance.qos
-      assert_equal 'aa-bb-cc-dd', d.instance.client_id
+
+      assert_equal true, d.instance.monitor.send_time
+
+      # cannot test formatter configuration (default: single_value)
 
       assert_equal true, d.instance.security.use_tls
       assert_equal '/cert/cacert.pem', d.instance.security.tls.ca_file

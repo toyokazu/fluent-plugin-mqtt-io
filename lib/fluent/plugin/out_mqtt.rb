@@ -107,9 +107,8 @@ module Fluent::Plugin
       if es.class == Fluent::OneEventStream
         es = inject_values_to_event_stream(tag, es)
         es.each do |time, record|
-          log.debug "MqttOutput#publish_event_stream: #{rewrite_tag(tag)}, #{time}, #{add_send_time(record)}"
           rescue_disconnection do
-            @client.publish(rewrite_tag(tag), @formatter.format(tag, time, add_send_time(record)))
+            publish(tag, time, record)
           end
         end
       else
@@ -139,17 +138,22 @@ module Fluent::Plugin
       true
     end
 
+    def publish(tag, time, record)
+      log.debug "MqttOutput::#{caller_locations(1,1)[0].label}: #{rewrite_tag(rewrite_tag(tag))}, #{time}, #{add_send_time(record)}"
+      @client.publish(
+        rewrite_tag(tag),
+        @formatter.format(tag, time, add_send_time(record)),
+        @retain,
+        @qos
+      )
+    end
+
+
     def write(chunk)
       return if chunk.empty?
       chunk.each do |tag, time, record|
         rescue_disconnection do
-          log.debug "MqttOutput#write: #{rewrite_tag(rewrite_tag(tag))}, #{time}, #{add_send_time(record)}"
-          @client.publish(
-            rewrite_tag(tag),
-            @formatter.format(tag, time, add_send_time(record)),
-            @retain,
-            @qos
-          )
+          publish(tag, time, record)
         end
       end
     end
