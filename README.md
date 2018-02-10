@@ -122,6 +122,23 @@ For fluent-plugin-mqtt-io ~> v0.3.0
 
 ```
 
+When using security options, specify them in security section; for example:
+
+```
+<match>
+   @type mqtt
+   host 'your_host'
+   port 'your_port'
+   <security>
+     username 'your_username'
+     password 'your_password'
+   </security>
+   <format>
+     @type json
+   </format>
+</match>
+```
+
 The options are basically the same as Input Plugin except for "format" and "bulk_trans" (only for Input). Additional options for Output Plugin are the following.
 
 - **time_key**: An attribute name used for timestamp field genarated from fluentd time field. Default is nil (omitted).
