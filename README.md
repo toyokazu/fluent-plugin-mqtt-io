@@ -42,6 +42,22 @@ Input Plugin can be used via source directive in the configuration.
 
 ```
 
+When using security options, specify them in security section; for example:
+
+```
+<match>
+   @type mqtt
+   host 'your_host'
+   port 'your_port'
+   <security>
+     username 'your_username'
+     password 'your_password'
+   </security>
+   <format>
+     @type json
+   </format>
+</match>
+```
 
 The default MQTT topic is "#". Configurable options are the following:
 
