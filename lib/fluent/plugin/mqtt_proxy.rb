@@ -106,8 +106,10 @@ module Fluent::Plugin
         yield
       rescue MQTT::ProtocolException => e
         # TODO:
-        # Currently MQTT::ProtocolException cannot be caught during @client.get
-        # and @client.publish. The reason must be investigated...
+        # Thread created via fluentd thread API, e.g. thread_create,
+        # cannot catch MQTT::ProtocolException raised from @read_thread
+        # in ruby-mqtt. So, the current version uses plugin local thread
+        # @connect_thread to catch it.
         retry_connect(e, "Protocol error occurs.")
       rescue Timeout::Error => e
         retry_connect(e, "Timeout error occurs.")
