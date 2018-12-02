@@ -64,7 +64,7 @@ The default MQTT topic is "#". Configurable options are the following:
 - **host**: IP address of MQTT broker
 - **port**: Port number of MQTT broker
 - **client_id**: Client ID that to connect to MQTT broker
-- **parser**: Parser plugin can be specified ![Parser Plugin](https://docs.fluentd.org/v1.0/articles/parser-plugin-overview)
+- **parser**: Parser plugin can be specified [Parser Plugin](https://docs.fluentd.org/v1.0/articles/parser-plugin-overview)
 - **topic**: Topic name to be subscribed
 - **security**
   - **username**: User name for authentication
@@ -109,13 +109,13 @@ The options are basically the same as Input Plugin except for "parser (for Input
   If this option is omitted, timestamp field is not appended to the output record.
 - **topic_rewrite_pattern**: Regexp pattern to extract replacement words from received topic or tag name
 - **topic_rewrite_replacement**: Topic name used for the publish using extracted pattern
-- **format**: Formatter plugin can be specified. ![Formatter Plugin](https://docs.fluentd.org/v1.0/articles/formatter-plugin-overview)
+- **format**: Formatter plugin can be specified. [Formatter Plugin](https://docs.fluentd.org/v1.0/articles/formatter-plugin-overview)
 - **monitor**: monitor section. only for fluent-plugin-mqtt-io
   - **send_time**: Add send time to message in millisecond (ms) as integer for debug and performance/delay analysis. only for fluent-plugin-mqtt-io
   - **send_time_key**: An attribute of send_time. only for fluent-plugin-mqtt-io
   - **time_type**: Type of time format (string (default), unixtime, float) only for fluent-plugin-mqtt-io
   - **time_format**: Time format e.g. %FT%T.%N%:z (refer strftime) only for fluent-plugin-mqtt-io
-- **buffer**: synchronous/asynchronous buffer is supported. Refer ![Buffer section configurations](https://docs.fluentd.org/v1.0/articles/buffer-section) for detailed configuration.
+- **buffer**: synchronous/asynchronous buffer is supported. Refer [Buffer section configurations](https://docs.fluentd.org/v1.0/articles/buffer-section) for detailed configuration.
   - **async**: Enable asynchronous buffer transfer. Default is false.
 
 If you use different source, e.g. the other MQTT broker, log file and so on, there is no need to specifie topic rewriting. Skip the following descriptions.
