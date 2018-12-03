@@ -40,8 +40,7 @@ module Fluent::Plugin
       end
     end
 
-    class MqttProxyError
-    end
+    class MqttError < StandardError; end
 
     def current_plugin_name
       # should be implemented
@@ -84,12 +83,15 @@ module Fluent::Plugin
     end
 
     def retry_connect(e, message)
-      log.error "#{message},#{e.class},#{e.message}"
-      log.error "Retry in #{@retry_interval} sec"
-      timer_execute("#{current_plugin_name}_connect".to_sym, @retry_interval, repeat: false, &method(:connect))
-      increment_retry_interval
-      after_disconnection
-      @client.disconnect if @client.connected?
+      if !@_retrying
+        log.error "#{message},#{e.class},#{e.message}"
+        log.error "Retry in #{@retry_interval} sec"
+        timer_execute("#{current_plugin_name}_connect".to_sym, @retry_interval, repeat: false, &method(:connect))
+        @_retrying = true
+        increment_retry_interval
+        after_disconnection
+        @client.disconnect if @client.connected?
+      end
     end
 
     def kill_connect_thread
@@ -102,6 +104,10 @@ module Fluent::Plugin
     end
 
     def rescue_disconnection
+      # Errors cannot be caught by fluentd core must be caught here.
+      # Since fluentd core retries write method for buffered output 
+      # when it caught Errors during the previous write,
+      # caughtable Error, e.g. MqttError, should be raised here.
       begin
         yield
       rescue MQTT::ProtocolException => e
@@ -110,19 +116,25 @@ module Fluent::Plugin
         # cannot catch MQTT::ProtocolException raised from @read_thread
         # in ruby-mqtt. So, the current version uses plugin local thread
         # @connect_thread to catch it.
-        retry_connect(e, "Protocol error occurs.")
+        retry_connect(e, "Protocol error occurs in #{current_plugin_name}.")
+        raise MqttError, "Protocol error occurs."
       rescue Timeout::Error => e
-        retry_connect(e, "Timeout error occurs.")
+        retry_connect(e, "Timeout error occurs in #{current_plugin_name}.")
+        raise Timeout::Error, "Timeout error occurs."
       rescue SystemCallError => e
-        retry_connect(e, "System call error occurs.")
+        retry_connect(e, "System call error occurs in #{current_plugin_name}.")
+        raise SystemCallError, "System call error occurs."
       rescue StandardError=> e
-        retry_connect(e, "The other error occurs.")
+        retry_connect(e, "The other error occurs in #{current_plugin_name}.")
+        raise StandardError, "The other error occurs."
       rescue MQTT::NotConnectedException=> e
         # Since MQTT::NotConnectedException is raised only on publish,
         # connection error should be catched before this error.
         # So, reconnection process is omitted for this Exception
         # to prevent waistful increment of retry interval.
-        log.error "MQTT not connected exception occurs.,#{e.class},#{e.message}"
+        #log.error "MQTT not connected exception occurs.,#{e.class},#{e.message}"
+        #retry_connect(e, "MQTT not connected exception occurs.")
+        raise MqttError, "MQTT not connected exception occurs in #{current_plugin_name}."
       end
     end
 
@@ -134,6 +146,7 @@ module Fluent::Plugin
 
     def connect
       #@connect_thread = thread_create("#{current_plugin_name}_monitor".to_sym) do
+      @_retrying = false
       @connect_thread = Thread.new do
         rescue_disconnection do
           @client.connect
