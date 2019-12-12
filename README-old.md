@@ -72,6 +72,7 @@ The default MQTT topic is "#". Configurable options are the following:
 - **bulk_trans_sep**: A message separator for bulk transfer. The default separator is "\t". only for fluent-plugin-mqtt-io <= 0.2.3
 - **username**: User name for authentication
 - **password**: Password for authentication
+- **clean_session**: Setting for clean session client option (false persists session offline)
 - **keep_alive**: An interval of sending keep alive packet (default 15 sec)
 - **ssl**: set true if you want to use SSL/TLS. If set to true, the following parameter must be provided
   - **ca_file**: CA certificate file path

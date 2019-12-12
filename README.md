@@ -73,6 +73,7 @@ The default MQTT topic is "#". Configurable options are the following:
     - **ca_file**: CA certificate file path
     - **key_file**: private key file path
     - **cert_file**: certificate file path
+- **clean_session**: Setting for clean session client option (false persists session offline)
 - **keep_alive**: An interval of sending keep alive packet (default 15 sec)
 - **monitor**: monitor section. only for fluent-plugin-mqtt-io
   - **recv_time**: Add receive time to message in millisecond (ms) as integer for debug and performance/delay analysis (default: false). only for fluent-plugin-mqtt-io
