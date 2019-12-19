@@ -55,7 +55,7 @@ module Fluent::Plugin
         host: @host,
         port: @port,
         client_id: @client_id,
-        clean_session: @clean_session
+        clean_session: @clean_session,
         keep_alive: @keep_alive
       }
       opts[:username] = @security.username if @security.to_h.has_key?(:username)
