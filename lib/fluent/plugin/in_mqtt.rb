@@ -1,7 +1,7 @@
 require 'fluent/plugin/input'
 require 'fluent/event'
 require 'fluent/time'
-require 'fluent/plugin/mqtt_proxy'
+require_relative 'mqtt_proxy'
 
 module Fluent::Plugin
   class MqttInput < Input
