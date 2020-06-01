@@ -5,7 +5,7 @@ Mqtt::IO Plugin is deeply inspired by Fluent::Plugin::Mqtt.
 
 https://github.com/yuuna/fluent-plugin-mqtt
 
-Mqtt::IO plugin focus on federating components, e.g. sensors, messaging platform and databases. Encryption/Decryption is not supported in this plugin but [fluent-plugin-jwt-filter](https://github.com/toyokazu/fluent-plugin-jwt-filter) can be used to encrypt/decrypt messages using JSON Web Token technology.
+Mqtt::IO plugin focus on federating components, e.g. sensors, messaging platform and databases. Connection encryption/decryption (TLS) is supported by ruby-mqtt but end-to-end encryption/decryption is not supported in this plugin. [fluent-plugin-jwt-filter](https://github.com/toyokazu/fluent-plugin-jwt-filter) can be used to encrypt/decrypt messages using JSON Web Token technology.
 
 ## Installation
 
