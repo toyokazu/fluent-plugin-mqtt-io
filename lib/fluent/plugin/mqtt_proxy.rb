@@ -85,10 +85,17 @@ module Fluent::Plugin
       @retry_interval = @retry_interval * @retry_inc_ratio
     end
 
-    def retry_connect(e, message)
+    def handle_retrying_connection_with_a_lag(e, message)
+      log.error "#{message},#{e.class},#{e.message}\n#{e.backtrace.join("\n")}"
+      log.error "Retry in #{@retry_interval} sec"
+      timer_execute("#{current_plugin_name}_connect".to_sym, @retry_interval,
+                    repeat: false) do
+        retry_connect
+      end
+    end
+
+    def retry_connect
       if !@_retrying
-        log.error "#{message},#{e.class},#{e.message}"
-        log.error "Retry in #{@retry_interval} sec"
         timer_execute("#{current_plugin_name}_connect".to_sym, @retry_interval, repeat: false, &method(:connect))
         @_retrying = true
         increment_retry_interval
@@ -119,16 +126,16 @@ module Fluent::Plugin
         # cannot catch MQTT::ProtocolException raised from @read_thread
         # in ruby-mqtt. So, the current version uses plugin local thread
         # @connect_thread to catch it.
-        retry_connect(e, "Protocol error occurs in #{current_plugin_name}.")
+        handle_retrying_connection_with_a_lag(e, "Protocol error occurs in #{current_plugin_name}.")
         raise MqttError, "Protocol error occurs."
       rescue Timeout::Error => e
-        retry_connect(e, "Timeout error occurs in #{current_plugin_name}.")
+        handle_retrying_connection_with_a_lag(e, "Timeout error occurs in #{current_plugin_name}.")
         raise Timeout::Error, "Timeout error occurs."
       rescue SystemCallError => e
-        retry_connect(e, "System call error occurs in #{current_plugin_name}.")
+        handle_retrying_connection_with_a_lag(e, "System call error occurs in #{current_plugin_name}.")
         raise SystemCallError, "System call error occurs."
       rescue StandardError=> e
-        retry_connect(e, "The other error occurs in #{current_plugin_name}.")
+        handle_retrying_connection_with_a_lag(e, "The other error occurs in #{current_plugin_name}.")
         raise StandardError, "The other error occurs."
       rescue MQTT::NotConnectedException=> e
         # Since MQTT::NotConnectedException is raised only on publish,
