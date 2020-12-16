@@ -66,20 +66,19 @@ module Fluent::Plugin
       :in_mqtt
     end
 
-    def kill_thread
-      @get_thread.kill if !@get_thread.nil?
+    def exit_thread
+      @get_thread.exit if !@get_thread.nil?
     end
 
     def after_disconnection
-      kill_thread
+      exit_thread
       super
     end
 
     def after_connection
       if @client.connected?
         @client.subscribe(@topic)
-        #@get_thread = thread_create(:in_mqtt_get) do
-        @get_thread = Thread.new do
+        @get_thread = thread_create(:in_mqtt_get) do
           @client.get do |topic, message|
             emit(topic, message)
           end

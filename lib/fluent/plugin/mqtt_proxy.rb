@@ -49,6 +49,10 @@ module Fluent::Plugin
     end
 
     def start_proxy
+      thread_create("#{current_plugin_name}_proxy".to_sym, &method(:proxy))
+    end
+
+    def proxy
       log.debug "start mqtt proxy for #{current_plugin_name}"
       log.debug "start to connect mqtt broker #{@host}:#{@port}"
       opts = {
@@ -97,13 +101,13 @@ module Fluent::Plugin
       end
     end
 
-    def kill_connect_thread
-      @connect_thread.kill if !@connect_thread.nil?
+    def exit_connect_thread
+      @connect_thread.exit if !@connect_thread.nil?
     end
 
     def after_disconnection
       # should be implemented
-      kill_connect_thread
+      exit_connect_thread
     end
 
     def rescue_disconnection
@@ -114,11 +118,6 @@ module Fluent::Plugin
       begin
         yield
       rescue MQTT::ProtocolException => e
-        # TODO:
-        # Thread created via fluentd thread API, e.g. thread_create,
-        # cannot catch MQTT::ProtocolException raised from @read_thread
-        # in ruby-mqtt. So, the current version uses plugin local thread
-        # @connect_thread to catch it.
         retry_connect(e, "Protocol error occurs in #{current_plugin_name}.")
         raise MqttError, "Protocol error occurs."
       rescue Timeout::Error => e
@@ -148,9 +147,8 @@ module Fluent::Plugin
     end
 
     def connect
-      #@connect_thread = thread_create("#{current_plugin_name}_monitor".to_sym) do
       @_retrying = false
-      @connect_thread = Thread.new do
+      @connect_thread = thread_create("#{current_plugin_name}_monitor".to_sym) do
         rescue_disconnection do
           @client.connect
           log.debug "connected to mqtt broker #{@host}:#{@port} for #{current_plugin_name}"

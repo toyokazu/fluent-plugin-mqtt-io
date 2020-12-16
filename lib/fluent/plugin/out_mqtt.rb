@@ -89,24 +89,23 @@ module Fluent::Plugin
     # Shutdown the thread and close sockets or files here.
     def shutdown
       shutdown_proxy
-      kill_thread
+      exit_thread
       super
     end
 
-    def kill_thread
-      @dummy_thread.kill if !@dummy_thread.nil?
+    def exit_thread
+      @dummy_thread.exit if !@dummy_thread.nil?
     end
 
     def after_connection
-      #@dummy_thread = thread_create(:out_mqtt_dummy) do
-      @dummy_thread = Thread.new do
+      @dummy_thread = thread_create(:out_mqtt_dummy) do
         Thread.stop
       end
       @dummy_thread
     end
 
     def after_disconnection
-      kill_thread
+      exit_thread
       super
     end
 
