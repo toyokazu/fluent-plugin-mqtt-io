@@ -20,11 +20,6 @@ module Fluent::Plugin
       config_param :@type, :string, default: 'none'
     end
 
-    # bulk_trans is deprecated
-    # multiple entries must be inputted as an Array
-    #config_param :bulk_trans, :bool, default: true
-    #config_param :bulk_trans_sep, :string, default: "\t"
-
     config_section :monitor, required: false, multi: false do
       desc 'Record received time into message or not.'
       config_param :recv_time, :bool, default: false
@@ -70,7 +65,16 @@ module Fluent::Plugin
       @get_thread.exit if !@get_thread.nil?
     end
 
-    def after_disconnection
+    def disconnect
+      begin
+        @client.disconnect if @client.connected?
+      rescue => e
+        log.error "Error in in_mqtt#disconnect,#{e.class},#{e.message}"
+      end
+      exit_thread
+    end
+
+    def terminate
       exit_thread
       super
     end

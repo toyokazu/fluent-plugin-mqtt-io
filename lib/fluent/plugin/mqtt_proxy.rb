@@ -20,8 +20,10 @@ module Fluent::Plugin
       base.config_param :initial_interval, :integer, default: 1
       base.desc 'Specify increasing ratio of connection retry interval.'
       base.config_param :retry_inc_ratio, :integer, default: 2
-      base.desc 'Specify maximum connection retry interval.'
+      base.desc 'Specify the maximum connection retry interval.'
       base.config_param :max_retry_interval, :integer, default: 300
+      base.desc 'Specify threshold of retry frequency as number of retries per minutes. Frequency is monitored per retry.'
+      base.config_param :max_retry_freq, :integer, default: 10
 
       base.config_section :security, required: false, multi: false do
         ### User based authentication
@@ -44,12 +46,14 @@ module Fluent::Plugin
 
     class MqttError < StandardError; end
 
+    class ExceedRetryFrequencyThresholdException < StandardError; end
+
     def current_plugin_name
       # should be implemented
     end
 
     def start_proxy
-      thread_create("#{current_plugin_name}_proxy".to_sym, &method(:proxy))
+      @proxy_thread = thread_create("#{current_plugin_name}_proxy".to_sym, &method(:proxy))
     end
 
     def proxy
@@ -72,8 +76,10 @@ module Fluent::Plugin
       end
 
       init_retry_interval
+      @retry_sequence = []
       @client = MQTT::Client.new(opts)
-      connect
+      # required to rescue MQTT::ProtocolException
+      @monitor_thread = thread_create("#{current_plugin_name}_monitor".to_sym, &method(:connect))
     end
 
     def shutdown_proxy
@@ -85,29 +91,43 @@ module Fluent::Plugin
     end
 
     def increment_retry_interval
-      return @retry_interval if @retry_interval >= @max_retry_interval
+      return @max_retry_interval if @retry_interval >= @max_retry_interval
       @retry_interval = @retry_interval * @retry_inc_ratio
     end
 
-    def retry_connect(e, message)
-      if !@_retrying
-        log.error "#{message},#{e.class},#{e.message}"
-        log.error "Retry in #{@retry_interval} sec"
-        timer_execute("#{current_plugin_name}_connect".to_sym, @retry_interval, repeat: false, &method(:connect))
-        @_retrying = true
-        increment_retry_interval
-        after_disconnection
-        @client.disconnect if @client.connected?
+    def update_retry_sequence(e) 
+      @retry_sequence << {time: Time.now, error: "#{e.class}: #{e.message}"}
+      # delete old retry records
+      while @retry_sequence[0][:time] < Time.now - 60
+        @retry_sequence.shift
+      end 
+    end
+
+    def check_retry_frequency
+      return if @retry_sequence.size <= 1
+      if @retry_sequence.size > @max_retry_freq
+        log.error "Retry frequency threshold is exceeded: #{@retry_sequence}"
+        raise ExceedRetryFrequencyThresholdException
       end
     end
 
-    def exit_connect_thread
-      @connect_thread.exit if !@connect_thread.nil?
+    def retry_connect(e, message)
+      log.error "#{message},#{e.class},#{e.message}"
+      log.error "Retry in #{@retry_interval} sec"
+      update_retry_sequence(e)
+      check_retry_frequency
+      disconnect
+      sleep @retry_interval
+      increment_retry_interval
+      connect
+      # never reach here
     end
 
-    def after_disconnection
+    def disconnect
       # should be implemented
-      exit_connect_thread
+    end
+
+    def terminate
     end
 
     def rescue_disconnection
@@ -119,16 +139,12 @@ module Fluent::Plugin
         yield
       rescue MQTT::ProtocolException => e
         retry_connect(e, "Protocol error occurs in #{current_plugin_name}.")
-        raise MqttError, "Protocol error occurs."
       rescue Timeout::Error => e
         retry_connect(e, "Timeout error occurs in #{current_plugin_name}.")
-        raise Timeout::Error, "Timeout error occurs."
       rescue SystemCallError => e
         retry_connect(e, "System call error occurs in #{current_plugin_name}.")
-        raise SystemCallError, "System call error occurs."
       rescue StandardError=> e
         retry_connect(e, "The other error occurs in #{current_plugin_name}.")
-        raise StandardError, "The other error occurs."
       rescue MQTT::NotConnectedException=> e
         # Since MQTT::NotConnectedException is raised only on publish,
         # connection error should be catched before this error.
@@ -136,7 +152,7 @@ module Fluent::Plugin
         # to prevent waistful increment of retry interval.
         #log.error "MQTT not connected exception occurs.,#{e.class},#{e.message}"
         #retry_connect(e, "MQTT not connected exception occurs.")
-        raise MqttError, "MQTT not connected exception occurs in #{current_plugin_name}."
+        #raise MqttError, "MQTT not connected exception occurs in #{current_plugin_name}."
       end
     end
 
@@ -147,15 +163,12 @@ module Fluent::Plugin
     end
 
     def connect
-      @_retrying = false
-      @connect_thread = thread_create("#{current_plugin_name}_monitor".to_sym) do
-        rescue_disconnection do
-          @client.connect
-          log.debug "connected to mqtt broker #{@host}:#{@port} for #{current_plugin_name}"
-          init_retry_interval
-          thread = after_connection
-          thread.join
-        end
+      rescue_disconnection do
+        @client.connect
+        log.debug "connected to mqtt broker #{@host}:#{@port} for #{current_plugin_name}"
+        init_retry_interval
+        thread = after_connection
+        thread.join
       end
     end
   end

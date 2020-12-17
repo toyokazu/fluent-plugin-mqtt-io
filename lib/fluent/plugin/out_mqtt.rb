@@ -97,16 +97,25 @@ module Fluent::Plugin
       @dummy_thread.exit if !@dummy_thread.nil?
     end
 
+    def disconnect
+      begin
+        @client.disconnect if @client.connected?
+      rescue => e
+        log.error "Error in out_mqtt#disconnect,#{e.class},#{e.message}"
+      end
+      exit_thread
+    end
+
+    def terminate
+      exit_thread
+      super
+    end
+
     def after_connection
       @dummy_thread = thread_create(:out_mqtt_dummy) do
         Thread.stop
       end
       @dummy_thread
-    end
-
-    def after_disconnection
-      exit_thread
-      super
     end
 
     def current_plugin_name
@@ -147,7 +156,7 @@ module Fluent::Plugin
     end
 
     def publish(tag, time, record)
-      log.debug "MqttOutput::#{caller_locations(1,1)[0].label}: #{rewrite_tag(rewrite_tag(tag))}, #{time}, #{add_send_time(record)}"
+      log.debug "MqttOutput::#{caller_locations(1,1)[0].label}: #{rewrite_tag(tag)}, #{time}, #{add_send_time(record)}"
       @client.publish(
         rewrite_tag(tag),
         @formatter.format(tag, time, add_send_time(record)),
