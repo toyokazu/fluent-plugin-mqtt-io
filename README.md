@@ -83,7 +83,7 @@ The default MQTT topic is "#". Configurable options are the following:
 - **initial_interval**: An initial value of retry interval (s) (default 1)
 - **retry_inc_ratio**: An increase ratio of retry interval per connection failure (default 2 (double)). It may be better to set the value to 1 in a mobile environment for eager reconnection.
 - **max_retry_interval**: Maximum value of retry interval (default 300)
-- **max_retry_freq**: Threshold of retry frequency described by a number of retries per minutes. This option is provided for detecting failure via proxy services, e.g. ssh port forwarding. When the thresold is exceeded, MqttProxy::ExceedRetryFrequencyThresholdException is raised and the fluentd will be restarted. So, it is enough to be specified once for a MQTT server at an input/output plugin in your configuration (default 10)
+- **max_retry_freq**: Threshold of retry frequency described by a number of retries per minutes. This option is provided for detecting failure via proxy services, e.g. ssh port forwarding. When the thresold is exceeded, MqttProxy::ExceedRetryFrequencyThresholdException is raised and the fluentd will be restarted. So, it is enough to be specified once for a MQTT server at a source/match directive in your configuration (default 10)
 
 Input Plugin supports @label directive.
 
