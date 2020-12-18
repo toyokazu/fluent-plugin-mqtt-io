@@ -53,6 +53,9 @@ module Fluent::Plugin
     end
 
     def start_proxy
+      # Start a thread from main thread for handling a thread generated
+      # by MQTT::Client#get (in_mqtt). Dummy thread is used for out_mqtt
+      # to keep the same implementation style.
       @proxy_thread = thread_create("#{current_plugin_name}_proxy".to_sym, &method(:proxy))
     end
 
@@ -78,12 +81,11 @@ module Fluent::Plugin
       init_retry_interval
       @retry_sequence = []
       @client = MQTT::Client.new(opts)
-      # required to rescue MQTT::ProtocolException
-      @monitor_thread = thread_create("#{current_plugin_name}_monitor".to_sym, &method(:connect))
+      connect
     end
 
     def shutdown_proxy
-      @client.disconnect
+      disconnect
     end
 
     def init_retry_interval
