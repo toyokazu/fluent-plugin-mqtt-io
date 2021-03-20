@@ -15,6 +15,9 @@ module Fluent::Plugin
     desc 'The topic to subscribe.'
     config_param :topic, :string, default: '#'
 
+    desc 'Topic with qos to subscribe in array format ["a/b",1]'
+    config_param :topic_with_qos, :array, default: nil
+
     config_section :parse do
       desc 'The format to receive.'
       config_param :@type, :string, default: 'none'
@@ -81,7 +84,12 @@ module Fluent::Plugin
 
     def after_connection
       if @client.connected?
-        @client.subscribe(@topic)
+        if @topic_with_qos.nil?
+          @client.subscribe(@topic)
+        else
+          @client.subscribe(@topic_with_qos)
+        end
+
         @get_thread = thread_create(:in_mqtt_get) do
           @client.get do |topic, message|
             emit(topic, message)
