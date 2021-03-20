@@ -62,10 +62,12 @@ When using security options, specify them in security section; for example:
 The default MQTT topic is "#". Configurable options are the following:
 
 - **host**: IP address of MQTT broker
+- **ha_hosts**: IP addresses of highly available MQTT brokers (first one to connect will be used and selection is done in a round robin fashion) e.g.: `ha_hosts ["host1", "host2"]`
 - **port**: Port number of MQTT broker
 - **client_id**: Client ID that to connect to MQTT broker
 - **parser**: Parser plugin can be specified [Parser Plugin](https://docs.fluentd.org/v1.0/articles/parser-plugin-overview)
 - **topic**: Topic name to be subscribed
+- **topic_with_qos**: Topic name to be subscribed with the respective qos to be used as qos > 0(default) is preferred sometimes, e.g.: `topic_with_qos ["a/b", 1]`
 - **security**
   - **username**: User name for authentication
   - **password**: Password for authentication
@@ -84,6 +86,7 @@ The default MQTT topic is "#". Configurable options are the following:
 - **retry_inc_ratio**: An increase ratio of retry interval per connection failure (default 2 (double)). It may be better to set the value to 1 in a mobile environment for eager reconnection.
 - **max_retry_interval**: Maximum value of retry interval (default 300)
 - **max_retry_freq**: Threshold of retry frequency described by a number of retries per minutes. This option is provided for detecting failure via proxy services, e.g. ssh port forwarding. When the thresold is exceeded, MqttProxy::ExceedRetryFrequencyThresholdException is raised and the fluentd will be restarted. So, it is enough to be specified once for a MQTT server at a source/match directive in your configuration (default 10)
+- **max_ha_connect_retries**: Maximum value of retries while using ha_hosts option. This option is provided to cycle between the hosts in a round robin fashion. When the value is exceeded, MqttProxy::ExceedConnectRetryException is raised and the fluentd will be restarted. So, it is enough to be specified once for a MQTT server at a source/match directive in your configuration (default 10).
 
 Input Plugin supports @label directive.
 

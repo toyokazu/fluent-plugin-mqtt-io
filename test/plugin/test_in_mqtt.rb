@@ -48,5 +48,23 @@ class MqttInputTest < Test::Unit::TestCase
       assert_equal '/cert/cert.pem', d.instance.security.tls.cert_file
 
     end
+
+    test "topic with qos" do
+      d = create_driver %[
+          topic_with_qos ["a/b",1]
+      ]
+
+      assert_equal ["a/b",1], d.instance.topic_with_qos
+
+    end
+
+    test "highly available hosts" do
+      d = create_driver %[
+          ha_hosts ["host1","host2"]
+      ]
+
+      assert_equal ["host1","host2"], d.instance.ha_hosts
+
+    end
   end
 end
