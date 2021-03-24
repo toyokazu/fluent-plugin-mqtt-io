@@ -8,6 +8,8 @@ module Fluent::Plugin
 
       base.desc 'The address to connect to.'
       base.config_param :host, :string, default: '127.0.0.1'
+      base.desc 'Highly available list of addresses to connect to'
+      base.config_param :ha_hosts, :array, default: nil
       base.desc 'The port to connect to.'
       base.config_param :port, :integer, default: MQTT_PORT
       base.desc 'Client ID of MQTT Connection'
@@ -24,6 +26,8 @@ module Fluent::Plugin
       base.config_param :max_retry_interval, :integer, default: 300
       base.desc 'Specify threshold of retry frequency as number of retries per minutes. Frequency is monitored per retry.'
       base.config_param :max_retry_freq, :integer, default: 10
+      base.desc 'Specify max connection retries if using ha hosts.'
+      base.config_param :max_ha_connect_retries, :integer, default: 10
 
       base.config_section :security, required: false, multi: false do
         ### User based authentication
@@ -46,6 +50,8 @@ module Fluent::Plugin
 
     class MqttError < StandardError; end
 
+    class ExceedConnectRetryException < StandardError; end
+
     class ExceedRetryFrequencyThresholdException < StandardError; end
 
     def current_plugin_name
@@ -59,11 +65,9 @@ module Fluent::Plugin
       @proxy_thread = thread_create("#{current_plugin_name}_proxy".to_sym, &method(:proxy))
     end
 
-    def proxy
-      log.debug "start mqtt proxy for #{current_plugin_name}"
-      log.debug "start to connect mqtt broker #{@host}:#{@port}"
+    def init_opts(host_val)
       opts = {
-        host: @host,
+        host: host_val,
         port: @port,
         client_id: @client_id,
         clean_session: @clean_session,
@@ -77,6 +81,13 @@ module Fluent::Plugin
         opts[:cert_file] = @security.tls.cert_file
         opts[:key_file] = @security.tls.key_file
       end
+
+      opts
+    end
+
+    def proxy
+      log.debug "start mqtt proxy for #{current_plugin_name}"
+      opts = init_opts(@host)
 
       init_retry_interval
       @retry_sequence = []
@@ -97,12 +108,12 @@ module Fluent::Plugin
       @retry_interval = @retry_interval * @retry_inc_ratio
     end
 
-    def update_retry_sequence(e) 
+    def update_retry_sequence(e)
       @retry_sequence << {time: Time.now, error: "#{e.class}: #{e.message}"}
       # delete old retry records
       while @retry_sequence[0][:time] < Time.now - 60
         @retry_sequence.shift
-      end 
+      end
     end
 
     def check_retry_frequency
@@ -134,11 +145,14 @@ module Fluent::Plugin
 
     def rescue_disconnection
       # Errors cannot be caught by fluentd core must be caught here.
-      # Since fluentd core retries write method for buffered output 
+      # Since fluentd core retries write method for buffered output
       # when it caught Errors during the previous write,
       # caughtable Error, e.g. MqttError, should be raised here.
       begin
         yield
+      rescue ExceedConnectRetryException => e
+        ## Raise error if connection retries are exceeded while using ha_hosts
+        raise
       rescue MQTT::ProtocolException => e
         retry_connect(e, "Protocol error occurs in #{current_plugin_name}.")
       rescue Timeout::Error => e
@@ -151,7 +165,7 @@ module Fluent::Plugin
         # Since MQTT::NotConnectedException is raised only on publish,
         # connection error should be catched before this error.
         # So, reconnection process is omitted for this Exception
-        # to prevent waistful increment of retry interval.
+        # to prevent wasteful increment of retry interval.
         #log.error "MQTT not connected exception occurs.,#{e.class},#{e.message}"
         #retry_connect(e, "MQTT not connected exception occurs.")
         #raise MqttError, "MQTT not connected exception occurs in #{current_plugin_name}."
@@ -166,11 +180,41 @@ module Fluent::Plugin
 
     def connect
       rescue_disconnection do
-        @client.connect
-        log.debug "connected to mqtt broker #{@host}:#{@port} for #{current_plugin_name}"
+        if @ha_hosts.nil?
+          log.info "Connecting to mqtt broker #{@host}:#{@port}"
+          @client.connect
+          log.debug "Connected to mqtt broker #{@host}:#{@port}"
+        else
+          connect_ha_hosts
+        end
+
         init_retry_interval
         thread = after_connection
         thread.join
+      end
+    end
+
+    def connect_ha_hosts
+      host_index = 0
+      retries = 0
+
+      begin
+        host = @ha_hosts[host_index]
+        log.info "Connecting to mqtt broker #{host}:#{@port}"
+        opts = init_opts(host)
+        @client = MQTT::Client.new(opts)
+        @client.connect
+        log.debug "Connected to mqtt broker #{host}:#{@port}"
+      rescue MQTT::ProtocolException, SocketError, SystemCallError => e
+        if retries < @max_ha_connect_retries
+          retries += 1
+          host_index = (host_index + 1) % @ha_hosts.length
+          log.warn "Failed connection attempt so retrying: #{e.message}"
+          retry # retry with different host in list
+        else
+          log.error "Connection retry attempts exceeded: #{@max_ha_connect_retries}"
+          raise ExceedConnectRetryException
+        end
       end
     end
   end
